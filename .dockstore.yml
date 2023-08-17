@@ -4,6 +4,6 @@ workflows:
     name: projected_PCA
     primaryDescriptorPath: projected_pca.wdl
     authors: 
-     - orcid: 0000-00020-7989-5420
+      - orcid: 0000-00020-7989-5420
    # testParameterFiles:
    #  - /projected_pca.json
