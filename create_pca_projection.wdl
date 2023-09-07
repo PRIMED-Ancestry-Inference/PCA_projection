@@ -144,7 +144,8 @@ task make_pca_loadings {
 	>>>
 
 	runtime {
-		docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
+		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
+		#docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
 		#disks: "local-disk " + disk_size + " HDD"
 		#memory: mem_gb + " GB"
 		#cpu: n_cpus
