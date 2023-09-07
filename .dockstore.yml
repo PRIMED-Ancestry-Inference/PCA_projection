@@ -1,9 +1,14 @@
 version: 1.2
 workflows:
-  - subclass: WDL
-    name: projected_PCA
-    primaryDescriptorPath: projected_pca.wdl
+  - name: projected_PCA
+    subclass: WDL
+    primaryDescriptorPath: /projected_pca.wdl
     authors: 
       - orcid: 0000-0002-7989-5420
-    #testParameterFiles:
-    #   - /projected_admixture.json
+  - name: create_pca_projection
+    subclass: WDL
+    primaryDescriptorPath: /create_pca_projection.wdl
+    authors: 
+      - orcid: 0000-0002-7989-5420
+    testParameterFiles:
+       - /create_pca_projection.json

@@ -1,0 +1,7 @@
+{
+	"make_pca_projection.ref_bim": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/testing/projected_admixture_files/ref.bim",
+	"make_pca_projection.bed": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/testing/projected_admixture_files/test.bed",
+	"make_pca_projection.bim": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/testing/projected_admixture_files/test.bim",
+	"make_pca_projection.fam": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/testing/projected_admixture_files/test.fam",
+	"make_pca_projection.max_kinship_coefficient": 0.0884
+}
