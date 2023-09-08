@@ -1,6 +1,6 @@
 version: 1.2
 workflows:
-  - name: projected_PCA
+  - name: projected_pca
     subclass: WDL
     primaryDescriptorPath: /projected_pca.wdl
     authors: 
