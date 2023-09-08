@@ -99,7 +99,7 @@ task run_pca_projected {
 
     output {
         #check output file name from --score in plink2
-        File pca_projection = "~{basename}_pca.sscore"
+        File projection_file = "~{basename}_pca.sscore"
         File projection_log = "~{basename}_pca.log"
     }
 }
@@ -134,6 +134,11 @@ workflow pca_projection {
             freq_file = prepareFiles.subset_freqs,
                 mem_gb = mem_gb,
                 n_cpus = n_cpus
+    }
+
+    output {
+        File projection_file = run_pca_projected.projection_file
+        File projection_log = run_pca_projected.projection_log
     }
     
     meta {
