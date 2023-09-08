@@ -33,13 +33,13 @@ task prepareFiles {
         awk 'FNR==NR{a[$1]; next}{if($3 in a) {print $0}}' extract.txt ~{ref_freqs} >> freqs_pcaReady.txt
     
         #check for overlap, if overlap is less than threshold, stop, default overlap threshold is 0.95
-        loadings_count=$(tail -n +2  < ${ref_loadings} | wc -l)
+        loadings_count=$(tail -n +2  < ~{ref_loadings} | wc -l)
         new_loadings_count=$(tail -n +2 < loadings_pcaReady.txt | wc -l)
         #doing this calculation in awk because I'm lousy at bash...
         prop=$(awk -v old=${loadings_count} -v new=${new_loadings_count} '{prop=new/old; print prop}' )
         printf "Variant overlap is ${prop} of original.\n"
         #https://support.terra.bio/hc/en-us/articles/360037484851-Variable-Types-in-WDL#:~:text=When%20working%20with%20optional%20variables%20in%20your%20command%2C,The%20syntax%20for%20that%20is%3A%20%24%20%7Bdefault%3D%22value%22%20variableName%7D
-        myoverlap=${default=0.95 overlap}
+        myoverlap=~{default=0.95 overlap}
         exit_code=$(awk -v prop=${prop} -v default_threshold=${myoverlap} '{myexit=0; if(prop < default_threshold){myexit=1}; print myexit }' )
         if [${exit_code} -gt 0]; then
             printf "SNP overlap ${prop} is lower than" # fix sentence fragment here
@@ -81,11 +81,11 @@ task run_pca_projected {
 
     command <<<
         #https://www.cog-genomics.org/plink/2.0/score#pca_project
-        command="/plink2 --bfile ${basename} \
+        command="/plink2 --bfile ~{basename} \
             --read-freq ~{freq_file} \
             --score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
                    --score-col-nums 6-15 \
-            --out ${basename}_proj_pca"
+            --out ~{basename}_proj_pca"
         printf "${command}\n"
         ${command}
     >>>
@@ -113,7 +113,6 @@ workflow pca_projection {
         File fam
         Int? mem_gb
         Int? n_cpus
-        
     }
     
     call prepareFiles {
@@ -128,12 +127,12 @@ workflow pca_projection {
     call run_pca_projected {
         input:
             bed = prepareFiles.subset_bed,
-                bim = prepareFiles.subset_bim,
-                fam = prepareFiles.subset_fam,
-                loadings = prepareFiles.subset_loadings,
+            bim = prepareFiles.subset_bim,
+            fam = prepareFiles.subset_fam,
+            loadings = prepareFiles.subset_loadings,
             freq_file = prepareFiles.subset_freqs,
-                mem_gb = mem_gb,
-                n_cpus = n_cpus
+            mem_gb = mem_gb,
+            n_cpus = n_cpus
     }
 
     output {
@@ -146,5 +145,4 @@ workflow pca_projection {
             email: "jonathan.shortt@cuanschutz.edu"
             description: "## run_projected_pca\n This workflow is used to project a genetic test dataset (in plink format, i.e., .bed/.bim/.fam) into pca space using user-defined allele loadings. First, the allele loadings (.P produced by ADMIXTURE) and the test dataset are both subset to contain the same set of variants (Note: this workflow assumes that variants from both the loadings and test dataset have been previously harmonized such that variants follow the same naming convention, alleles at each site are ordered identically, and variants are sorted). Then the test dataset is projected onto the principal components."
     }
-
 }
