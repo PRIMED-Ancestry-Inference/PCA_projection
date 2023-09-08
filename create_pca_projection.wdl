@@ -176,7 +176,8 @@ task run_pca_projected {
 
 	command <<<
 		#https://www.cog-genomics.org/plink/2.0/score#pca_project
-		command="/plink2 --bfile ${basename} \
+#		command="/plink2 --bed ${basename} \
+		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 			--extract ~{keep_vars} \
 			--read-freq ~{freq_file} \
 			--score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
@@ -253,9 +254,12 @@ workflow make_pca_projection {
 
 	call run_pca_projected {
 		input:
-			bed = extractOverlap.subset_bed, #might be able to just send the original .bed file here
-			bim = extractOverlap.subset_bim,
-			fam = extractOverlap.subset_fam,
+#			bed = extractOverlap.subset_bed, #might be able to just send the original .bed file here
+#			bim = extractOverlap.subset_bim,
+#			fam = extractOverlap.subset_fam,
+			bed = bed,
+			bim = bim, 
+			fam = fam,
 			keep_vars = pruneVars.subset_keep_vars,
 			loadings = make_pca_loadings.snp_loadings,
 			freq_file = make_pca_loadings.var_freq_counts,
