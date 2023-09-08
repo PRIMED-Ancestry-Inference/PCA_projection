@@ -5,6 +5,8 @@ workflows:
     primaryDescriptorPath: /projected_pca.wdl
     authors: 
       - orcid: 0000-0002-7989-5420
+    testParameterFiles:
+       - /projected_pca.json
   - name: create_pca_projection
     subclass: WDL
     primaryDescriptorPath: /create_pca_projection.wdl
