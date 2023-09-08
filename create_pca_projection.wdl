@@ -200,7 +200,7 @@ task run_pca_projected {
 	}
 }
 
-workflow make_pca_projection {
+workflow create_pca_projection {
 	input{ #still need to work through this block- make sure that I'm bringing in everything that I need
 		File bed
 		File bim

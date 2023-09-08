@@ -1,6 +1,6 @@
 version 1.0
 
-workflow pca_projection {
+workflow projected_PCA {
     input {
         File ref_loadings
         File ref_freqs
