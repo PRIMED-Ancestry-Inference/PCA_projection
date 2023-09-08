@@ -172,7 +172,6 @@ task run_pca_projected {
 
 	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
 	String basename = basename(bed, ".bed")
-	#ln --symbolic ${P} ${basename}.${k}.P.in
 
 	command <<<
 		#https://www.cog-genomics.org/plink/2.0/score#pca_project
@@ -182,7 +181,7 @@ task run_pca_projected {
 			--read-freq ~{freq_file} \
 			--score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
 			--score-col-nums 6-15 \
-			--out ${basename}_proj_pca"
+			--out ~{basename}_proj_pca"
 		printf "${command}\n"
 		${command}
 	>>>
