@@ -1,7 +1,7 @@
 version 1.0
 
 task prepareFiles {
-    input{
+    input {
         File ref_loadings
         File ref_freqs
         File bed
@@ -16,7 +16,7 @@ task prepareFiles {
     
     command <<<
         #get a list of variant names in common between the two, save to extract.txt
-               #variant name in loadings is assumed to be 3rd column, assuming plink2 format (https://www.cog-genomics.org/plink/2.0/formats#eigenvec)
+        #variant name in loadings is assumed to be 3rd column, assuming plink2 format (https://www.cog-genomics.org/plink/2.0/formats#eigenvec)
         awk 'FNR==NR{a[$3]; next}{if($2 in a){print $2}}' ~{ref_loadings} ~{bim} > extract.txt
 
         #subset bed with --extract extract.txt
@@ -27,24 +27,24 @@ task prepareFiles {
         head -n 1 ~{ref_loadings} > loadings_pcaReady.txt
         awk 'FNR==NR{a[$1]; next}{if($3 in a) {print $0}}' extract.txt ~{ref_loadings} >> loadings_pcaReady.txt
     
-            #extract variants in-common variants from ref_freqs
+        #extract variants in-common variants from ref_freqs
         #this step may not be necessary at all since plink --score might just be able to deal with it
         head -n 1 ~{ref_freqs} > freqs_pcaReady.txt
         awk 'FNR==NR{a[$1]; next}{if($3 in a) {print $0}}' extract.txt ~{ref_freqs} >> freqs_pcaReady.txt
     
-            #check for overlap, if overlap is less than threshold, stop, default overlap threshold is 0.95
-            loadings_count=$(tail -n +2  < ${ref_loadings} | wc -l)
-           new_loadings_count=$(tail -n +2 < loadings_pcaReady.txt | wc -l)
-            #doing this calculation in awk because I'm lousy at bash...
-            prop=$(awk -v old=${loadings_count} -v new=${new_loadings_count} '{prop=new/old; print prop}' )
-            printf "Variant overlap is ${prop} of original.\n"
-            #https://support.terra.bio/hc/en-us/articles/360037484851-Variable-Types-in-WDL#:~:text=When%20working%20with%20optional%20variables%20in%20your%20command%2C,The%20syntax%20for%20that%20is%3A%20%24%20%7Bdefault%3D%22value%22%20variableName%7D
-            myoverlap=${default=0.95 overlap}
-            exit_code=$(awk -v prop=${prop} -v default_threshold=${myoverlap} '{myexit=0; if(prop < default_threshold){myexit=1}; print myexit }' )
-            if [${exit_code} -gt 0]; then
-                printf "SNP overlap ${prop} is lower than"
-                exit ${exit_code};
-            fi
+        #check for overlap, if overlap is less than threshold, stop, default overlap threshold is 0.95
+        loadings_count=$(tail -n +2  < ${ref_loadings} | wc -l)
+        new_loadings_count=$(tail -n +2 < loadings_pcaReady.txt | wc -l)
+        #doing this calculation in awk because I'm lousy at bash...
+        prop=$(awk -v old=${loadings_count} -v new=${new_loadings_count} '{prop=new/old; print prop}' )
+        printf "Variant overlap is ${prop} of original.\n"
+        #https://support.terra.bio/hc/en-us/articles/360037484851-Variable-Types-in-WDL#:~:text=When%20working%20with%20optional%20variables%20in%20your%20command%2C,The%20syntax%20for%20that%20is%3A%20%24%20%7Bdefault%3D%22value%22%20variableName%7D
+        myoverlap=${default=0.95 overlap}
+        exit_code=$(awk -v prop=${prop} -v default_threshold=${myoverlap} '{myexit=0; if(prop < default_threshold){myexit=1}; print myexit }' )
+        if [${exit_code} -gt 0]; then
+            printf "SNP overlap ${prop} is lower than" # fix sentence fragment here
+            exit ${exit_code};
+        fi
     >>>
     
     output {
@@ -105,7 +105,7 @@ task run_pca_projected {
 }
 
 workflow pca_projection {
-    input{
+    input {
         File ref_loadings
         File ref_freqs
         File bed
