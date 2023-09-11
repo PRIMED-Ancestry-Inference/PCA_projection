@@ -196,8 +196,8 @@ task run_pca_projected {
 
 	output {
 		#check output file name from --score in plink2
-		File pca_projection = "~{basename}_pca.sscore"
-		File projection_log = "~{basename}_pca.log"
+		File pca_projection = "~{basename}_proj_pca.sscore"
+		File projection_log = "~{basename}_proj_pca.log"
 	}
 }
 
