@@ -79,14 +79,14 @@ task prepareFiles {
         loadings_count=$(tail -n +2  < ~{ref_loadings} | wc -l)
         new_loadings_count=$(tail -n +2 < loadings_pcaReady.txt | wc -l)
         #doing this calculation in awk because I'm lousy at bash...
-        prop=$(awk -v old=${loadings_count} -v new=${new_loadings_count} '{prop=new/old; print prop}' )
+        prop=$(awk -v old=~{loadings_count} -v new=~{new_loadings_count} '{prop=new/old; print prop}' )
         printf "Variant overlap is ${prop} of original.\n"
         #https://support.terra.bio/hc/en-us/articles/360037484851-Variable-Types-in-WDL#:~:text=When%20working%20with%20optional%20variables%20in%20your%20command%2C,The%20syntax%20for%20that%20is%3A%20%24%20%7Bdefault%3D%22value%22%20variableName%7D
         myoverlap=~{overlap}
-        exit_code=$(awk -v prop=${prop} -v default_threshold=${myoverlap} '{myexit=0; if(prop < default_threshold){myexit=1}; print myexit }' )
-        if [${exit_code} -gt 0]; then
-            printf "SNP overlap ${prop} is lower than" # fix sentence fragment here
-            exit ${exit_code};
+        exit_code=$(awk -v prop=~{prop} -v default_threshold=~{myoverlap} '{myexit=0; if(prop < default_threshold){myexit=1}; print myexit }' )
+        if [~{exit_code} -gt 0]; then
+            printf "SNP overlap ~{prop} is lower than ~{myoverlap}. Please ensure higher overlap. Goodbye." # fix sentence fragment here
+            exit ~{exit_code};
         fi
     >>>
     
