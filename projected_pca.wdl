@@ -148,7 +148,7 @@ task run_pca_projected {
 
 	command <<<
 		#https://www.cog-genomics.org/plink/2.0/score#pca_project
-		command="/plink2 --bfile ~{basename} \
+		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 			--read-freq ~{freq_file} \
 			--score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
 			--score-col-nums 6-15 \
