@@ -122,7 +122,7 @@ task checkOverlap {
 		if(exit_code > 0):
 			print("SNP overlap %.3f is lower than %.3f. Please ensure higher overlap. Goodbye." % (proportion, ~{threshold}) )
 		CODE
-		echo "<${exit_code}>"
+		echo "${exit_code}"
 	>>>
 
 	#check for overlap, if overlap is less than threshold, stop, default overlap threshold is 0.95
