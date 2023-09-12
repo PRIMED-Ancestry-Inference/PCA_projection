@@ -20,27 +20,42 @@ workflow projected_PCA {
 			fam = fam
 		}
 
-	call run_pca_projected {
+	call checkOverlap {
 		input:
-			bed = prepareFiles.subset_bed,
-			bim = prepareFiles.subset_bim,
-			fam = prepareFiles.subset_fam,
-			loadings = prepareFiles.subset_loadings,
-			freq_file = prepareFiles.subset_freqs,
-			mem_gb = mem_gb,
-			n_cpus = n_cpus
+			ref_loadings = ref_loadings,
+			pca_loadings = prepareFiles.subset_loadings
+	}
+
+	if (checkOverlap.exit_code == 0) {
+		call run_pca_projected {
+			input:
+				bed = prepareFiles.subset_bed,
+				bim = prepareFiles.subset_bim,
+				fam = prepareFiles.subset_fam,
+				loadings = prepareFiles.subset_loadings,
+				freq_file = prepareFiles.subset_freqs,
+				mem_gb = mem_gb,
+				n_cpus = n_cpus
 		}
+	
 
 		output {
 			File projection_file = run_pca_projected.projection_file
 			File projection_log = run_pca_projected.projection_log
 		}
+	}
 
-		meta {
-			author: "Jonathan Shortt"
-			email: "jonathan.shortt@cuanschutz.edu"
-			description: "## run_projected_pca\n This workflow is used to project a genetic test dataset (in plink format, i.e., .bed/.bim/.fam) into pca space using user-defined allele loadings. First, the allele loadings (.P produced by ADMIXTURE) and the test dataset are both subset to contain the same set of variants (Note: this workflow assumes that variants from both the loadings and test dataset have been previously harmonized such that variants follow the same naming convention, alleles at each site are ordered identically, and variants are sorted). Then the test dataset is projected onto the principal components."
+	if (checkOverlap.exit_code == 1) {
+		output {
+			Int exit_code = checkOverlap.exit_code
 		}
+	}
+
+	meta {
+		author: "Jonathan Shortt"
+		email: "jonathan.shortt@cuanschutz.edu"
+		description: "## run_projected_pca\n This workflow is used to project a genetic test dataset (in plink format, i.e., .bed/.bim/.fam) into pca space using user-defined allele loadings. First, the allele loadings (.P produced by ADMIXTURE) and the test dataset are both subset to contain the same set of variants (Note: this workflow assumes that variants from both the loadings and test dataset have been previously harmonized such that variants follow the same naming convention, alleles at each site are ordered identically, and variants are sorted). Then the test dataset is projected onto the principal components."
+	}
 }
 
 task prepareFiles {
@@ -94,6 +109,10 @@ task prepareFiles {
 
 task checkOverlap {
 	input {
+		File ref_loadings
+		File pca_loadings
+		Float overlap = 0.95
+		Int mem_gb = 8
 	}
 
 	command <<<
@@ -134,11 +153,11 @@ task checkOverlap {
 #        fi
 
 	output {
-		String my_exit_code = read_string(stdout())
+		String exit_code = read_string(stdout())
 	}
 
 	runtime {
-		docker: ""us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian"
+		docker: "us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian"
 		#disks: "local-disk " + disk_size + " HDD"
 		memory: mem_gb + " GB"
 	}
