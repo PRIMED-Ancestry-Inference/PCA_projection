@@ -26,7 +26,7 @@ workflow projected_PCA {
 			pca_loadings = prepareFiles.subset_loadings
 	}
 
-	if (checkOverlap.exit_code < 1) {
+	if (checkOverlap.overlap >= 0.95) {
 		call run_pca_projected {
 			input:
 				bed = prepareFiles.subset_bed,
@@ -99,7 +99,6 @@ task checkOverlap {
 	input {
 		File ref_loadings
 		File pca_loadings
-		Float threshold = 0.95
 		Int mem_gb = 8
 	}
 
@@ -115,20 +114,14 @@ task checkOverlap {
 		loadings_count=countLines(~{ref_loadings})
 		new_loadings_count=countLines(~{pca_loadings})
 		proportion=float(loadings_count)/new_loadings_count
-		print("Variant overlap is %.3f\n" % proportion)
-		exit_code=0
-		if(proportion < ~{threshold}):
-			exit_code=1
-		if(exit_code > 0):
-			print("SNP overlap %.3f is lower than %.3f. Please ensure higher overlap. Goodbye." % (proportion, ~{threshold}) )
+		print("%.3f" % proportion)
 		CODE
-		echo "${exit_code}"
 	>>>
 
 	#check for overlap, if overlap is less than threshold, stop, default overlap threshold is 0.95
 
 	output {
-		Int exit_code = read_string(stdout())
+		Float overlap = read_float(stdout())
 	}
 
 	runtime {
