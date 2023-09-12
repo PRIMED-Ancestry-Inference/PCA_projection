@@ -99,7 +99,7 @@ task checkOverlap {
 	input {
 		File ref_loadings
 		File pca_loadings
-		Float overlap = 0.95
+		Float threshold = 0.95
 		Int mem_gb = 8
 	}
 
@@ -117,7 +117,7 @@ task checkOverlap {
 		proportion=float(loadings_count)/new_loadings_count
 		print("Variant overlap is %.3f\n" % proportion)
 		exit_code=0
-		if(proportion < ~{default_threshold}):
+		if(proportion < ~{threshold}):
 			exit_code=1
 		if(exit_code > 0):
 			print("SNP overlap %.3f is lower than %.3f. Please ensure higher overlap. Goodbye." % (proportion, ~{default_threshold}) )
