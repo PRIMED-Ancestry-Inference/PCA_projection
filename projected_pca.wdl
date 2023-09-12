@@ -111,8 +111,8 @@ task checkOverlap {
 					line_count=line_count + 1
 			return line_count
 		
-		loadings_count=countLines(~{ref_loadings})
-		new_loadings_count=countLines(~{pca_loadings})
+		loadings_count=countLines("~{ref_loadings}")
+		new_loadings_count=countLines("~{pca_loadings}")
 		proportion=float(loadings_count)/new_loadings_count
 		print("%.3f" % proportion)
 		CODE
