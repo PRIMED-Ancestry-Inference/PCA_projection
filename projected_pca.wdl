@@ -63,19 +63,19 @@ task prepareFiles {
 	command <<<
 		#get a list of variant names in common between the two, save to extract.txt
 		#variant name in loadings is assumed to be 3rd column, assuming plink2 format (https://www.cog-genomics.org/plink/2.0/formats#eigenvec)
-		awk 'FNR==NR{a[$3]; next}{if($2 in a){print $2}}' ~{ref_loadings} ~{bim} > extract.txt
+		awk 'FNR==NR{a[$2]; next}{if($2 in a){print $2}}' ~{ref_loadings} ~{bim} > extract.txt
 		#subset bed with --extract extract.txt
 		/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} --extract extract.txt --make-bed --keep-allele-order --out ~{basename}_pcaReady
 
 		#extract variants in-common variants from ref_loadings
 		#this step may not be necessary at all since plink --score might just be able to deal with it
 		head -n 1 ~{ref_loadings} > loadings_pcaReady.txt
-		awk 'FNR==NR{a[$1]; next}{if($3 in a) {print $0}}' extract.txt ~{ref_loadings} >> loadings_pcaReady.txt
+		awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' extract.txt ~{ref_loadings} >> loadings_pcaReady.txt
 
 		#extract variants in-common variants from ref_freqs
 		#this step may not be necessary at all since plink --score might just be able to deal with it
 		head -n 1 ~{ref_freqs} > freqs_pcaReady.txt
-		awk 'FNR==NR{a[$1]; next}{if($3 in a) {print $0}}' extract.txt ~{ref_freqs} >> freqs_pcaReady.txt
+		awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' extract.txt ~{ref_freqs} >> freqs_pcaReady.txt
 	>>>
 
 	output {
