@@ -172,7 +172,6 @@ task run_pca_projected {
 
 	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
 	String basename = basename(bed, ".bed")
-	#ln --symbolic ${P} ${basename}.${k}.P.in
 
 	command <<<
 		#https://www.cog-genomics.org/plink/2.0/score#pca_project
@@ -182,13 +181,14 @@ task run_pca_projected {
 			--read-freq ~{freq_file} \
 			--score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
 			--score-col-nums 6-15 \
-			--out ${basename}_proj_pca"
+			--out ~{basename}_proj_pca"
 		printf "${command}\n"
 		${command}
 	>>>
 
 	runtime {
-		docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
+		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
+		#docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
 		#disks: "local-disk " + disk_size + " HDD"
 		#memory: mem_gb + " GB"
 		#cpu: n_cpus
@@ -196,8 +196,8 @@ task run_pca_projected {
 
 	output {
 		#check output file name from --score in plink2
-		File pca_projection = "~{basename}_pca.sscore"
-		File projection_log = "~{basename}_pca.log"
+		File pca_projection = "~{basename}_proj_pca.sscore"
+		File projection_log = "~{basename}_proj_pca.log"
 	}
 }
 
