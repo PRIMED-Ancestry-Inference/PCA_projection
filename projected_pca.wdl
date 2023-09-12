@@ -141,7 +141,7 @@ task checkOverlap {
 #        fi
 
 	output {
-		String exit_code = read_string(stdout())
+		Int exit_code = read_string(stdout())
 	}
 
 	runtime {
