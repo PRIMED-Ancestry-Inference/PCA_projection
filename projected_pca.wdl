@@ -26,7 +26,7 @@ workflow projected_PCA {
 			pca_loadings = prepareFiles.subset_loadings
 	}
 
-	if (checkOverlap.exit_code == 0) {
+	if (checkOverlap.exit_code < 1) {
 		call run_pca_projected {
 			input:
 				bed = prepareFiles.subset_bed,
@@ -36,18 +36,6 @@ workflow projected_PCA {
 				freq_file = prepareFiles.subset_freqs,
 				mem_gb = mem_gb,
 				n_cpus = n_cpus
-		}
-	
-
-		output {
-			File projection_file = run_pca_projected.projection_file
-			File projection_log = run_pca_projected.projection_log
-		}
-	}
-
-	if (checkOverlap.exit_code == 1) {
-		output {
-			Int exit_code = checkOverlap.exit_code
 		}
 	}
 
