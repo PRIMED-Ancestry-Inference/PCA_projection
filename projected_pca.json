@@ -1,7 +1,7 @@
 {
-    "pca_projection.ref_loadings": "",
-    "pca_projection.ref_freqs": "",
-    "pca_projection.bed": "",
-    "pca_projection.bim": "",
-    "pca_projection.fam": ""
+    "pca_projection.ref_loadings": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/submissions/5c940ca9-08e3-47a4-8086-c91d5d157ad1/create_pca_projection/3bc2f900-1441-4a00-a806-997981cb183c/call-make_pca_loadings/cacheCopy/hgdp_tgp_gnomad_v3.1.2.merged_snp_loadings.eigenvec.allele",
+    "pca_projection.ref_freqs": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/submissions/5c940ca9-08e3-47a4-8086-c91d5d157ad1/create_pca_projection/3bc2f900-1441-4a00-a806-997981cb183c/call-make_pca_loadings/cacheCopy/hgdp_tgp_gnomad_v3.1.2.merged_snp_loadings.acount",
+    "pca_projection.bed": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/hgdp_tgp_gnomad_v3.1.2/hgdp_tgp_gnomad_v3.1.2.merged.bed",
+    "pca_projection.bim": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/hgdp_tgp_gnomad_v3.1.2/hgdp_tgp_gnomad_v3.1.2.merged.vars_renamed.bim",
+    "pca_projection.fam": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/hgdp_tgp_gnomad_v3.1.2/hgdp_tgp_gnomad_v3.1.2.merged.fam"
 }
