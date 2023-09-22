@@ -242,8 +242,8 @@ workflow create_pca_projection {
 		input:
 			ref_bim = ref_bim,
 			bed = select_first([removeRelateds.out_bed, bed]),
-			bim = select_first([removeRelateds.out_bim, fam]),
-			fam = select_first([removeRelateds.out_bim, fam]),
+			bim = select_first([removeRelateds.out_bim, bim]),
+			fam = select_first([removeRelateds.out_fam, fam])
 	}
 
 	if (prune_variants) {
