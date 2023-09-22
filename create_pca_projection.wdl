@@ -6,7 +6,7 @@ task removeRelateds {
 		File bed
 		File bim
 		File fam
-		Float? max_kinship_coefficient
+		Float max_kinship_coefficient = 0.0442
 		Int mem_gb = 8
 	}
 
@@ -23,7 +23,7 @@ task removeRelateds {
 
 		#identify individuals who are less related than kinship threshold
 		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-		~{if defined(max_kinship_coefficient) then "--king-cutoff ref_kin ~{max_kinship_coefficient}" else "--king-cutoff ref_kin 0.0442"} \
+		--king-cutoff ref_kin ~{max_kinship_coefficient} \
 		--out ~{basename}"
 		printf "${command}\n"
 		${command}
@@ -89,9 +89,9 @@ task pruneVars {
 		File bim
 		File fam
 		File keep_inds
-		Int? window_size
-		Int? shift_size
-		Int? r2_threshold
+		Int window_size = 10000
+		Int shift_size = 1000
+		Float r2_threshold = 0.1
 		Int mem_gb = 8
 	}
 
@@ -102,7 +102,7 @@ task pruneVars {
 		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 			--keep ~{keep_inds} \
 			--keep-allele-order \
-			--indep-pairwise ~{if defined(window_size) then "~{window_size} ~{shift_size} ~{r2_threshold}" else "10000 1000 0.1"} \
+			--indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
 			--out ~{basename}_indep"
 		printf "${command}\n"
 		${command}
