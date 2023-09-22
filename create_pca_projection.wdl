@@ -10,7 +10,7 @@ task removeRelateds {
 		Int mem_gb = 8
 	}
 
-	Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
+	#Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
 	String basename = basename(bed, ".bed")
 
 	command <<<
@@ -50,7 +50,7 @@ task extractOverlap {
 		Int mem_gb = 8
 	}
 
-	Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
+	#Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
 	String basename = basename(bed, ".bed")
 
 	command <<<
@@ -95,7 +95,7 @@ task pruneVars {
 		Int mem_gb = 8
 	}
 
-	Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
+	#Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
 	String basename = basename(bed, ".bed")
 	
 	command <<<
@@ -128,7 +128,7 @@ task make_pca_loadings {
 		File keep_vars
 	}
 
-	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
+	#Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
 	String basename = basename(bed, ".bed")
 	#ln --symbolic ${P} ${basename}.${k}.P.in
 
@@ -170,7 +170,7 @@ task run_pca_projected {
 		File freq_file
 	}
 
-	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
+	#Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
 	String basename = basename(bed, ".bed")
 
 	command <<<
@@ -211,8 +211,8 @@ workflow create_pca_projection {
 		Int? window_size
 		Int? shift_size
 		Int? r2_threshold
-		String? mem_gb
-		Int? n_cpus
+		#String? mem_gb
+		#Int? n_cpus
 	}
 
 	call removeRelateds {
