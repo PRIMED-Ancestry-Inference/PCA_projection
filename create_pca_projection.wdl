@@ -228,39 +228,39 @@ workflow create_pca_projection {
 		#Int? n_cpus
 	}
 
-  	if (remove_relateds) {
-		call removeRelateds {
-			input:
-				bed = bed,
-				bim = bim,
-				fam = fam,
-				max_kinship_coefficient = max_kinship_coefficient
-		}
-	}
-
 	call extractOverlap {
 		input:
 			ref_bim = ref_bim,
-			bed = select_first([removeRelateds.out_bed, bed]),
-			bim = select_first([removeRelateds.out_bim, bim]),
-			fam = select_first([removeRelateds.out_fam, fam])
+			bed = bed,
+			bim = bim,
+			fam = fam
+	}
+
+  	if (remove_relateds) {
+		call removeRelateds {
+			input:
+				bed = extractOverlap.subset_bed,
+				bim = extractOverlap.subset_bim,
+				fam = extractOverlap.subset_fam,
+				max_kinship_coefficient = max_kinship_coefficient
+		}
 	}
 
 	if (prune_variants) {
 		call pruneVars {
 			input:
-				bed = extractOverlap.subset_bed,
-				bim = extractOverlap.subset_bim,
-				fam = extractOverlap.subset_fam,
+				bed = select_first([removeRelateds.out_bed, extractOverlap.subset_bed]),
+				bim = select_first([removeRelateds.out_bim, extractOverlap.subset_bim]),
+				fam = select_first([removeRelateds.out_fam, extractOverlap.subset_fam]),
 				window_size = window_size,
 				shift_size = shift_size,
 				r2_threshold = r2_threshold
 		}
 	}
 
-	File final_bed = select_first([pruneVars.out_bed, extractOverlap.subset_bed])
-	File final_bim = select_first([pruneVars.out_bim, extractOverlap.subset_bim])
-	File final_fam = select_first([pruneVars.out_fam, extractOverlap.subset_fam])
+	File final_bed = select_first([pruneVars.out_bed, removeRelateds.out_bed, extractOverlap.subset_bed])
+	File final_bim = select_first([pruneVars.out_bim, removeRelateds.out_bim, extractOverlap.subset_bim])
+	File final_fam = select_first([pruneVars.out_fam, removeRelateds.out_fam, extractOverlap.subset_fam])
 
 	call make_pca_loadings {
 		input:
@@ -271,12 +271,9 @@ workflow create_pca_projection {
 
 	call run_pca_projected {
 		input:
-#			bed = extractOverlap.subset_bed, #might be able to just send the original .bed file here
-#			bim = extractOverlap.subset_bim,
-#			fam = extractOverlap.subset_fam,
-			bed = final_bed,
-			bim = final_bim, 
-			fam = final_fam,
+			bed = extractOverlap.subset_bed,
+			bim = extractOverlap.subset_bim,
+			fam = extractOverlap.subset_fam,
 			loadings = make_pca_loadings.snp_loadings,
 			freq_file = make_pca_loadings.var_freq_counts,
 			#mem_gb = mem_gb,
