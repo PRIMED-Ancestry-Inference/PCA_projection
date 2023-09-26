@@ -280,6 +280,14 @@ workflow create_pca_projection {
 			#n_cpus = n_cpus
 	}
 
+	output {
+		File var_freq_counts = make_pca_loadings.var_freq_counts
+		File snp_loadings =  make_pca_loadings.snp_loadings
+		File loadings_log =  make_pca_loadings.projection_log
+		File pca_projection = run_pca_projected.pca_projection
+		File projection_log = run_pca_projected.projection_log
+	}
+
 	meta {
 		author: "Jonathan Shortt"
 		email: "jonathan.shortt@cuanschutz.edu"
