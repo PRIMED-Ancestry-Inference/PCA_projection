@@ -291,6 +291,6 @@ workflow create_pca_projection {
 	meta {
 		author: "Jonathan Shortt"
 		email: "jonathan.shortt@cuanschutz.edu"
-		description: "## run_projected_pca\n This workflow is used to create a pca projection from a genetic reference dataset (in plink format, i.e., .bed/.bim/.fam). First, the reference data is subsetted to include only sites in common with a provided reference .bim (intended to contain only variants that one would expect to find in all downstream datsets that will be projected using loadings created in this worflow (e.g., a list of common sites that are easily imputed in TOPMed)), and then pruned for linkage equilibrium (after removing related individuals). Then pca is run on the dataset."
+		description: "This workflow is used to create a pca projection from a genetic reference dataset (in plink format, i.e., .bed/.bim/.fam). First, the reference data is subsetted to include only sites in common with a provided reference .bim (intended to contain only variants that one would expect to find in all downstream datsets that will be projected using loadings created in this worflow (e.g., a list of common sites that are easily imputed in TOPMed)), and then pruned for linkage equilibrium (after removing related individuals). Then PCA is run on the dataset."
 	}
 }
