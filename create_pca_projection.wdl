@@ -6,31 +6,35 @@ task removeRelateds {
 		File bed
 		File bim
 		File fam
-		Float? max_kinship_coefficient
+		Float max_kinship_coefficient = 0.0442
 		Int mem_gb = 8
 	}
 
-	Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
+	#Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
 	String basename = basename(bed, ".bed")
 
 	command <<<
 		#make the kinship matrix- #this is recommended when accessing the matrix numerous times but may be less efficient here
-		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-		--make-king triangle bin \
-		--out ref_kin"
-		printf "${command}\n"
-		${command}
+		#command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+		#--make-king triangle bin \
+		#--out ref_kin"
+		#printf "${command}\n"
+		#${command}
 
 		#identify individuals who are less related than kinship threshold
 		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-		~{if defined(max_kinship_coefficient) then "--king-cutoff ref_kin ~{max_kinship_coefficient}" else "--king-cutoff ref_kin 0.0442"} \
-		--out ~{basename}"
+		--king-cutoff ~{max_kinship_coefficient} \
+		--make-bed \
+		--out ~{basename}_unrel"
 		printf "${command}\n"
 		${command}
 	>>>
 
 	output {
-		File subset_keep_inds="~{basename}.king.cutoff.in.id"
+		#File subset_keep_inds="~{basename}.king.cutoff.in.id"
+		File out_bed="~{basename}_unrel.bed"
+		File out_bim="~{basename}_unrel.bim"
+		File out_fam="~{basename}_unrel.fam"
 	}
 
 	runtime {
@@ -50,7 +54,7 @@ task extractOverlap {
 		Int mem_gb = 8
 	}
 
-	Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
+	#Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
 	String basename = basename(bed, ".bed")
 
 	command <<<
@@ -88,28 +92,38 @@ task pruneVars {
 		File bed
 		File bim
 		File fam
-		File keep_inds
-		Int? window_size
-		Int? shift_size
-		Int? r2_threshold
+		#File keep_inds
+		Int window_size = 10000
+		Int shift_size = 1000
+		Float r2_threshold = 0.1
 		Int mem_gb = 8
 	}
 
-	Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
+	#Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
 	String basename = basename(bed, ".bed")
 	
 	command <<<
 		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-			--keep ~{keep_inds} \
 			--keep-allele-order \
-			--indep-pairwise ~{if defined(window_size) then "~{window_size} ~{shift_size} ~{r2_threshold}" else "10000 1000 0.1"} \
+			--indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
 			--out ~{basename}_indep"
+		printf "${command}\n"
+		${command}
+
+		# extract pruned variants
+		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+			--extract ~{basename}_indep.prune.in \
+			--make-bed \
+			--out ~{basename}_pruned"
 		printf "${command}\n"
 		${command}
 	>>>
 
 	output {
-		File subset_keep_vars="~{basename}_indep.prune.in"
+		#File subset_keep_vars="~{basename}_indep.prune.in"
+		File out_bed="~{basename}_pruned.bed"
+		File out_bim="~{basename}_pruned.bim"
+		File out_fam="~{basename}_pruned.fam"
 	}
 
 	runtime {
@@ -124,18 +138,16 @@ task make_pca_loadings {
 		File bed
 		File bim
 		File fam
-		File keep_inds
-		File keep_vars
+		#File keep_inds
+		#File keep_vars
 	}
 
-	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
+	#Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
 	String basename = basename(bed, ".bed")
 	#ln --symbolic ${P} ${basename}.${k}.P.in
 
 	command <<<
 		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-			--keep ~{keep_inds} \
-			--extract ~{keep_vars} \
 			--freq counts \
 			--pca allele-wts \
 			--out ~{basename}_snp_loadings"
@@ -165,19 +177,18 @@ task run_pca_projected {
 		File bed
 		File bim
 		File fam
-		File keep_vars
+		#File keep_vars
 		File loadings
 		File freq_file
 	}
 
-	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
+	#Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
 	String basename = basename(bed, ".bed")
 
 	command <<<
 		#https://www.cog-genomics.org/plink/2.0/score#pca_project
 #		command="/plink2 --bed ${basename} \
 		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-			--extract ~{keep_vars} \
 			--read-freq ~{freq_file} \
 			--score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
 			--score-col-nums 6-15 \
@@ -202,26 +213,19 @@ task run_pca_projected {
 }
 
 workflow create_pca_projection {
-	input{ #still need to work through this block- make sure that I'm bringing in everything that I need
+	input{ 
 		File bed
 		File bim
 		File fam
 		File ref_bim
-		Float max_kinship_coefficient
+   	 	Boolean remove_relateds = true
+		Float? max_kinship_coefficient
+    	Boolean prune_variants = true
 		Int? window_size
 		Int? shift_size
 		Int? r2_threshold
-		String? mem_gb
-		Int? n_cpus
-	}
-
-	call removeRelateds {
-		input:
-			#name in task = name in workflow input
-			bed = bed,
-			bim = bim,
-			fam = fam,
-			max_kinship_coefficient = max_kinship_coefficient
+		#String? mem_gb
+		#Int? n_cpus
 	}
 
 	call extractOverlap {
@@ -232,39 +236,56 @@ workflow create_pca_projection {
 			fam = fam
 	}
 
-	call pruneVars {
-		input:
-			bed = extractOverlap.subset_bed,
-			bim = extractOverlap.subset_bim,
-			fam = extractOverlap.subset_fam,
-			keep_inds = removeRelateds.subset_keep_inds,
-			window_size = window_size,
-			shift_size = shift_size,
-			r2_threshold = r2_threshold
+  	if (remove_relateds) {
+		call removeRelateds {
+			input:
+				bed = extractOverlap.subset_bed,
+				bim = extractOverlap.subset_bim,
+				fam = extractOverlap.subset_fam,
+				max_kinship_coefficient = max_kinship_coefficient
+		}
 	}
+
+	if (prune_variants) {
+		call pruneVars {
+			input:
+				bed = select_first([removeRelateds.out_bed, extractOverlap.subset_bed]),
+				bim = select_first([removeRelateds.out_bim, extractOverlap.subset_bim]),
+				fam = select_first([removeRelateds.out_fam, extractOverlap.subset_fam]),
+				window_size = window_size,
+				shift_size = shift_size,
+				r2_threshold = r2_threshold
+		}
+	}
+
+	File final_bed = select_first([pruneVars.out_bed, removeRelateds.out_bed, extractOverlap.subset_bed])
+	File final_bim = select_first([pruneVars.out_bim, removeRelateds.out_bim, extractOverlap.subset_bim])
+	File final_fam = select_first([pruneVars.out_fam, removeRelateds.out_fam, extractOverlap.subset_fam])
 
 	call make_pca_loadings {
 		input:
-			bed = bed,
-			bim = bim,
-			fam = fam,
-			keep_inds = removeRelateds.subset_keep_inds,
-			keep_vars = pruneVars.subset_keep_vars
+			bed = final_bed,
+			bim = final_bim,
+			fam = final_fam
 	}
 
 	call run_pca_projected {
 		input:
-#			bed = extractOverlap.subset_bed, #might be able to just send the original .bed file here
-#			bim = extractOverlap.subset_bim,
-#			fam = extractOverlap.subset_fam,
-			bed = bed,
-			bim = bim, 
-			fam = fam,
-			keep_vars = pruneVars.subset_keep_vars,
+			bed = extractOverlap.subset_bed,
+			bim = extractOverlap.subset_bim,
+			fam = extractOverlap.subset_fam,
 			loadings = make_pca_loadings.snp_loadings,
 			freq_file = make_pca_loadings.var_freq_counts,
 			#mem_gb = mem_gb,
 			#n_cpus = n_cpus
+	}
+
+	output {
+		File var_freq_counts = make_pca_loadings.var_freq_counts
+		File snp_loadings =  make_pca_loadings.snp_loadings
+		File loadings_log =  make_pca_loadings.projection_log
+		File pca_projection = run_pca_projected.pca_projection
+		File projection_log = run_pca_projected.projection_log
 	}
 
 	meta {
