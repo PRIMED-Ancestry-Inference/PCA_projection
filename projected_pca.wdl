@@ -4,9 +4,8 @@ workflow projected_PCA {
 	input {
 		File ref_loadings
 		File ref_freqs
-		File bed
-		File bim
-		File fam
+		File vcf
+		Float overlap = 0.95
 		Int? mem_gb
 		Int? n_cpus
 	}
@@ -15,9 +14,7 @@ workflow projected_PCA {
 		input:
 			ref_loadings = ref_loadings,
 			ref_freqs = ref_freqs,
-			bed = bed, 
-			bim = bim,
-			fam = fam
+			vcf = vcf
 		}
 
 	call checkOverlap {
@@ -26,17 +23,22 @@ workflow projected_PCA {
 			pca_loadings = prepareFiles.subset_loadings
 	}
 
-	if (checkOverlap.overlap >= 0.95) {
+	if (checkOverlap.overlap >= overlap) {
 		call run_pca_projected {
 			input:
-				bed = prepareFiles.subset_bed,
-				bim = prepareFiles.subset_bim,
-				fam = prepareFiles.subset_fam,
+				pgen = prepareFiles.subset_pgen,
+				pvar = prepareFiles.subset_pvar,
+				pfam = prepareFiles.subset_pfam,
 				loadings = prepareFiles.subset_loadings,
 				freq_file = prepareFiles.subset_freqs,
 				mem_gb = mem_gb,
 				n_cpus = n_cpus
 		}
+	}
+
+	output {
+		File? projection_file = run_pca_projected.projection_file
+		File? projection_log = run_pca_projected.projection_log
 	}
 
 	meta {
@@ -50,22 +52,21 @@ task prepareFiles {
 	input {
 		File ref_loadings
 		File ref_freqs
-		File bed
-		File bim
-		File fam
-		Float overlap = 0.95
+		File vcf
 		Int mem_gb = 8
 	}
 
-	Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5    #hoping this works?
-	String basename = basename(bed, ".bed")
+	Int disk_size = ceil(2.5*(size(vcf, "GB")))
+	String filename = basename(vcf)
+	String basename = if (sub(filename, ".bcf", "") == filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
+	String in_file = if (sub(filename, ".bcf", "") == filename) then "--bcf" + basename else "--vcf " + basename
 
 	command <<<
 		#get a list of variant names in common between the two, save to extract.txt
 		#variant name in loadings is assumed to be 3rd column, assuming plink2 format (https://www.cog-genomics.org/plink/2.0/formats#eigenvec)
-		awk 'FNR==NR{a[$2]; next}{if($2 in a){print $2}}' ~{ref_loadings} ~{bim} > extract.txt
-		#subset bed with --extract extract.txt
-		/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} --extract extract.txt --make-bed --keep-allele-order --out ~{basename}_pcaReady
+		awk '{print $2}' ~{ref_loadings} > extract.txt
+		#subset file with --extract extract.txt
+		/plink2 ~{in_file} --extract extract.txt --make-pgen --out ~{basename}_pcaReady
 
 		#extract variants in-common variants from ref_loadings
 		#this step may not be necessary at all since plink --score might just be able to deal with it
@@ -80,9 +81,9 @@ task prepareFiles {
 
 	output {
 		File snps_to_keep="extract.txt"
-		File subset_bed="~{basename}_pcaReady.bed"
-		File subset_bim="~{basename}_pcaReady.bim"
-		File subset_fam="~{basename}_pcaReady.fam"
+		File subset_pgen="~{basename}_pcaReady.pgen"
+		File subset_pvar="~{basename}_pcaReady.pvar"
+		File subset_pfam="~{basename}_pcaReady.pfam"
 		File subset_log="~{basename}_pcaReady.log"
 		File subset_loadings="loadings_pcaReady.txt"
 		File subset_freqs="freqs_pcaReady.txt"
@@ -90,7 +91,7 @@ task prepareFiles {
 
 	runtime {
 		docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
-		#disks: "local-disk " + disk_size + " HDD"
+		disks: "local-disk " + disk_size + " SSD"
 		memory: mem_gb + " GB"
 	}
 }
@@ -126,29 +127,28 @@ task checkOverlap {
 
 	runtime {
 		docker: "us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian"
-		#disks: "local-disk " + disk_size + " HDD"
 		memory: mem_gb + " GB"
 	}
 }
 
 task run_pca_projected {
 	input {
-		File bed
-		File bim
-		File fam
+		File pgen
+		File pvar
+		File pfam
 		File loadings
 		File freq_file
 		Int mem_gb = 8
 		Int n_cpus = 4 # check this
 	}
 
-	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
-	String basename = basename(bed, ".bed")
+	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(pfam, "GB")))
+	String basename = basename(pgen, ".pgen")
 	#ln --symbolic ${P} ${basename}.${k}.P.in
 
 	command <<<
 		#https://www.cog-genomics.org/plink/2.0/score#pca_project
-		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --pfam ~{pfam} \
 			--read-freq ~{freq_file} \
 			--score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
 			--score-col-nums 6-15 \
@@ -159,7 +159,7 @@ task run_pca_projected {
 
 	runtime {
 		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-		#disks: "local-disk " + disk_size + " HDD"
+		disks: "local-disk " + disk_size + " SSD"
 		memory: mem_gb + " GB"
 		cpu: n_cpus
 	}
