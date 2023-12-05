@@ -63,7 +63,7 @@ task prepareFiles {
 	String v1 = sub(filename, "vcf.gz", "")
 	String v2 = sub(filename, ".vcf.gz", "")
 	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
-	String in_file = if (sub(filename, ".bcf", "") != filename) then "--bcf" + basename else "--vcf " + basename
+	String in_file = if (sub(filename, ".bcf", "") != filename) then "--bcf " + filename else "--vcf " + filename
 
 	command <<<
 		echo '~{filename}'
