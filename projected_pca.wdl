@@ -63,14 +63,9 @@ task prepareFiles {
 	String v1 = sub(filename, "vcf.gz", "")
 	String v2 = sub(filename, ".vcf.gz", "")
 	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
-	String in_file = if (sub(filename, ".bcf", "") != filename) then "--bcf " + filename else "--vcf " + filename
+	String in_file = if (sub(filename, ".bcf", "") != filename) then "--bcf " + vcf else "--vcf " + vcf
 
 	command <<<
-		echo '~{filename}'
-		echo '~{b1}'
-		echo '~{b2}'
-		echo '~{v1}'
-		echo '~{v2}'
 		#get a list of variant names in common between the two, save to extract.txt
 		#variant name in loadings is assumed to be 3rd column, assuming plink2 format (https://www.cog-genomics.org/plink/2.0/formats#eigenvec)
 		awk '{print $2}' ~{ref_loadings} > extract.txt
