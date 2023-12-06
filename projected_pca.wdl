@@ -63,14 +63,14 @@ task prepareFiles {
 	String v1 = sub(filename, "vcf.gz", "")
 	String v2 = sub(filename, ".vcf.gz", "")
 	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
-	String in_file = if (sub(filename, ".bcf", "") != filename) then "--bcf " + vcf else "--vcf " + vcf
+	String prefix = if (sub(filename, ".bcf", "") != filename) then "--bcf" else "--vcf"
 
 	command <<<
 		#get a list of variant names in common between the two, save to extract.txt
 		#variant name in loadings is assumed to be 3rd column, assuming plink2 format (https://www.cog-genomics.org/plink/2.0/formats#eigenvec)
 		awk '{print $2}' ~{ref_loadings} > extract.txt
 		#subset file with --extract extract.txt
-		/plink2 ~{in_file} --extract extract.txt --make-pgen --out ~{basename}_pcaReady
+		/plink2 ~{prefix} ~{vcf} --extract extract.txt --make-pgen --out ~{basename}_pcaReady
 
 		#extract variants in-common variants from ref_loadings
 		#this step may not be necessary at all since plink --score might just be able to deal with it
