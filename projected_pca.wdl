@@ -28,7 +28,7 @@ workflow projected_PCA {
 			input:
 				pgen = prepareFiles.subset_pgen,
 				pvar = prepareFiles.subset_pvar,
-				pfam = prepareFiles.subset_pfam,
+				psam = prepareFiles.subset_psam,
 				loadings = prepareFiles.subset_loadings,
 				freq_file = prepareFiles.subset_freqs,
 				mem_gb = mem_gb,
@@ -87,7 +87,7 @@ task prepareFiles {
 		File snps_to_keep="extract.txt"
 		File subset_pgen="~{basename}_pcaReady.pgen"
 		File subset_pvar="~{basename}_pcaReady.pvar"
-		File subset_pfam="~{basename}_pcaReady.pfam"
+		File subset_psam="~{basename}_pcaReady.psam"
 		File subset_log="~{basename}_pcaReady.log"
 		File subset_loadings="loadings_pcaReady.txt"
 		File subset_freqs="freqs_pcaReady.txt"
@@ -139,20 +139,20 @@ task run_pca_projected {
 	input {
 		File pgen
 		File pvar
-		File pfam
+		File psam
 		File loadings
 		File freq_file
 		Int mem_gb = 8
 		Int n_cpus = 4 # check this
 	}
 
-	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(pfam, "GB")))
+	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
 	String basename = basename(pgen, ".pgen")
 	#ln --symbolic ${P} ${basename}.${k}.P.in
 
 	command <<<
 		#https://www.cog-genomics.org/plink/2.0/score#pca_project
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --pfam ~{pfam} \
+		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--read-freq ~{freq_file} \
 			--score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
 			--score-col-nums 6-15 \
