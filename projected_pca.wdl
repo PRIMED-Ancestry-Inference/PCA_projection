@@ -6,8 +6,6 @@ workflow projected_PCA {
 		File ref_freqs
 		File vcf
 		Float overlap = 0.95
-		Int? mem_gb
-		Int? n_cpus
 	}
 
 	call prepareFiles {
@@ -30,9 +28,7 @@ workflow projected_PCA {
 				pvar = prepareFiles.subset_pvar,
 				psam = prepareFiles.subset_psam,
 				loadings = prepareFiles.subset_loadings,
-				freq_file = prepareFiles.subset_freqs,
-				mem_gb = mem_gb,
-				n_cpus = n_cpus
+				freq_file = prepareFiles.subset_freqs
 		}
 	}
 
@@ -58,10 +54,6 @@ task prepareFiles {
 
 	Int disk_size = ceil(2.5*(size(vcf, "GB")))
 	String filename = basename(vcf)
-	String b1 = sub(filename, "bcf", "")
-	String b2 = sub(filename, ".bcf", "")
-	String v1 = sub(filename, "vcf.gz", "")
-	String v2 = sub(filename, ".vcf.gz", "")
 	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
 	String prefix = if (sub(filename, ".bcf", "") != filename) then "--bcf" else "--vcf"
 
@@ -104,7 +96,6 @@ task checkOverlap {
 	input {
 		File ref_loadings
 		File pca_loadings
-		Int mem_gb = 8
 	}
 
 	command <<<
@@ -131,7 +122,6 @@ task checkOverlap {
 
 	runtime {
 		docker: "us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian"
-		memory: mem_gb + " GB"
 	}
 }
 
