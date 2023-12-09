@@ -4,31 +4,42 @@ workflow projected_PCA {
 	input {
 		File ref_loadings
 		File ref_freqs
-		File vcf
+		Array[File] vcf
 		Float overlap = 0.95
 	}
 
-	call prepareFiles {
-		input:
-			ref_loadings = ref_loadings,
-			ref_freqs = ref_freqs,
-			vcf = vcf
+	scatter (file in vcf) {
+		call prepareFiles {
+			input:
+				ref_loadings = ref_loadings,
+				ref_freqs = ref_freqs,
+				vcf = file
 		}
+	}
+
+	call mergeFiles {
+		input:
+			pgen = prepareFiles.subset_pgen,
+			pvar = prepareFiles.subset_pvar,
+			psam = prepareFiles.subset_psam,
+			loadings = prepareFiles.subset_loadings,
+			freqs = prepareFiles.subset_freqs
+	}
 
 	call checkOverlap {
 		input:
 			ref_loadings = ref_loadings,
-			pca_loadings = prepareFiles.subset_loadings
+			pca_loadings = mergeFiles.out_loadings
 	}
 
 	if (checkOverlap.overlap >= overlap) {
 		call run_pca_projected {
 			input:
-				pgen = prepareFiles.subset_pgen,
-				pvar = prepareFiles.subset_pvar,
-				psam = prepareFiles.subset_psam,
-				loadings = prepareFiles.subset_loadings,
-				freq_file = prepareFiles.subset_freqs
+				pgen = mergeFiles.out_pgen,
+				pvar = mergeFiles.out_pvar,
+				psam = mergeFiles.out_psam,
+				loadings = mergeFiles.out_loadings,
+				freq_file = mergeFiles.out_freqs
 		}
 	}
 
@@ -91,6 +102,47 @@ task prepareFiles {
 		memory: mem_gb + " GB"
 	}
 }
+
+
+task mergeFiles {
+	input {
+		Array[File] pgen
+		Array[File] pvar
+		Array[File] psam
+		Array[File] loadings
+		Array[File] freqs
+		Int mem_gb = 16
+	}
+
+	Int disk_size = ceil(3*(size(pgen, "GB")))
+
+	command <<<
+		# merge plink files
+		cat ~{write_lines(pgen)} | sed 's/.pgen//' > pfile.txt
+		/plink2 --pmerge-list pfile.txt --out merged
+		# concatenate loadings
+		head -n 1 ~{loadings[1]} > loadings.txt
+		tail -n +2 -q ~{sep=' ' loadings} >> loadings.txt
+		# concatenate freqs
+		head -n 1 ~{freqs[1]} > freqs.txt
+		tail -n +2 -q ~{sep=' ' freqs} >> freqs.txt
+	>>>
+
+	output {
+		File out_pgen = "merged.pgen"
+		File out_pvar = "merged.pvar"
+		File out_psam = "merged.psam"
+		File out_loadings = "merged_loadings.txt"
+		File out_freqs = "merged_freqs.txt"
+	}
+
+	runtime {
+		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
+		disks: "local-disk " + disk_size + " SSD"
+		memory: mem_gb + " GB"
+	}
+}
+
 
 task checkOverlap {
 	input {
