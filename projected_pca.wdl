@@ -121,11 +121,11 @@ task mergeFiles {
 		cat ~{write_lines(pgen)} | sed 's/.pgen//' > pfile.txt
 		/plink2 --pmerge-list pfile.txt --out merged
 		# concatenate loadings
-		head -n 1 ~{loadings[1]} > loadings.txt
-		tail -n +2 -q ~{sep=' ' loadings} >> loadings.txt
+		head -n 1 ~{loadings[1]} > merged_loadings.txt
+		tail -n +2 -q ~{sep=' ' loadings} >> merged_loadings.txt
 		# concatenate freqs
-		head -n 1 ~{freqs[1]} > freqs.txt
-		tail -n +2 -q ~{sep=' ' freqs} >> freqs.txt
+		head -n 1 ~{freqs[1]} > merged_freqs.txt
+		tail -n +2 -q ~{sep=' ' freqs} >> merged_freqs.txt
 	>>>
 
 	output {
