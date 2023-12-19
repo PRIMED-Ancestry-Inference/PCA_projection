@@ -74,7 +74,7 @@ task prepareFiles {
 		awk '{print $2}' ~{ref_loadings} > extract.txt
 		#subset file with --extract extract.txt
 		/plink2 ~{prefix} ~{vcf} --extract extract.txt --make-pgen --out ~{basename}_pcaReady
-		awk '{print $2}' ~{basename}_pcaReady.pvar > selected_variants.txt
+		awk '/^[^#]/ {print $3}' ~{basename}_pcaReady.pvar > selected_variants.txt
 
 		#extract variants in-common variants from ref_loadings
 		#this step may not be necessary at all since plink --score might just be able to deal with it
