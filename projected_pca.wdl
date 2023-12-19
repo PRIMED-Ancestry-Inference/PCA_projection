@@ -74,20 +74,21 @@ task prepareFiles {
 		awk '{print $2}' ~{ref_loadings} > extract.txt
 		#subset file with --extract extract.txt
 		/plink2 ~{prefix} ~{vcf} --extract extract.txt --make-pgen --out ~{basename}_pcaReady
+		awk '{print $2}' ~{basename}_pcaReady.pvar > selected_variants.txt
 
 		#extract variants in-common variants from ref_loadings
 		#this step may not be necessary at all since plink --score might just be able to deal with it
 		head -n 1 ~{ref_loadings} > loadings_pcaReady.txt
-		awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' extract.txt ~{ref_loadings} >> loadings_pcaReady.txt
+		awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' selected_variants.txt ~{ref_loadings} >> loadings_pcaReady.txt
 
 		#extract variants in-common variants from ref_freqs
 		#this step may not be necessary at all since plink --score might just be able to deal with it
 		head -n 1 ~{ref_freqs} > freqs_pcaReady.txt
-		awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' extract.txt ~{ref_freqs} >> freqs_pcaReady.txt
+		awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' selected_variants.txt ~{ref_freqs} >> freqs_pcaReady.txt
 	>>>
 
 	output {
-		File snps_to_keep="extract.txt"
+		File snps_to_keep="selected_variants.txt"
 		File subset_pgen="~{basename}_pcaReady.pgen"
 		File subset_pvar="~{basename}_pcaReady.pvar"
 		File subset_psam="~{basename}_pcaReady.psam"
