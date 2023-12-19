@@ -21,15 +21,16 @@ workflow projected_PCA {
 		input:
 			pgen = prepareFiles.subset_pgen,
 			pvar = prepareFiles.subset_pvar,
-			psam = prepareFiles.subset_psam,
-			loadings = prepareFiles.subset_loadings,
-			freqs = prepareFiles.subset_freqs
+			psam = prepareFiles.subset_psam
+			#loadings = prepareFiles.subset_loadings,
+			#freqs = prepareFiles.subset_freqs
 	}
 
 	call checkOverlap {
 		input:
 			ref_loadings = ref_loadings,
-			pca_loadings = mergeFiles.out_loadings
+			pvar = mergeFiles.out_pvar
+			#pca_loadings = mergeFiles.out_loadings
 	}
 
 	if (checkOverlap.overlap >= overlap) {
@@ -38,8 +39,8 @@ workflow projected_PCA {
 				pgen = mergeFiles.out_pgen,
 				pvar = mergeFiles.out_pvar,
 				psam = mergeFiles.out_psam,
-				loadings = mergeFiles.out_loadings,
-				freq_file = mergeFiles.out_freqs
+				loadings = ref_loadings,
+				freq_file = ref_freqs
 		}
 	}
 
@@ -78,13 +79,13 @@ task prepareFiles {
 
 		#extract variants in-common variants from ref_loadings
 		#this step may not be necessary at all since plink --score might just be able to deal with it
-		head -n 1 ~{ref_loadings} > loadings_pcaReady.txt
-		awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' selected_variants.txt ~{ref_loadings} >> loadings_pcaReady.txt
+		#head -n 1 ~{ref_loadings} > loadings_pcaReady.txt
+		#awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' selected_variants.txt ~{ref_loadings} >> loadings_pcaReady.txt
 
 		#extract variants in-common variants from ref_freqs
 		#this step may not be necessary at all since plink --score might just be able to deal with it
-		head -n 1 ~{ref_freqs} > freqs_pcaReady.txt
-		awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' selected_variants.txt ~{ref_freqs} >> freqs_pcaReady.txt
+		#head -n 1 ~{ref_freqs} > freqs_pcaReady.txt
+		#awk 'FNR==NR{a[$1]; next}{if($2 in a) {print $0}}' selected_variants.txt ~{ref_freqs} >> freqs_pcaReady.txt
 	>>>
 
 	output {
@@ -93,8 +94,8 @@ task prepareFiles {
 		File subset_pvar="~{basename}_pcaReady.pvar"
 		File subset_psam="~{basename}_pcaReady.psam"
 		File subset_log="~{basename}_pcaReady.log"
-		File subset_loadings="loadings_pcaReady.txt"
-		File subset_freqs="freqs_pcaReady.txt"
+		#File subset_loadings="loadings_pcaReady.txt"
+		#File subset_freqs="freqs_pcaReady.txt"
 	}
 
 	runtime {
@@ -110,8 +111,8 @@ task mergeFiles {
 		Array[File] pgen
 		Array[File] pvar
 		Array[File] psam
-		Array[File] loadings
-		Array[File] freqs
+		#Array[File] loadings
+		#Array[File] freqs
 		Int mem_gb = 16
 	}
 
@@ -121,20 +122,21 @@ task mergeFiles {
 		# merge plink files
 		cat ~{write_lines(pgen)} | sed 's/.pgen//' > pfile.txt
 		/plink2 --pmerge-list pfile.txt --out merged
-		# concatenate loadings
-		head -n 1 ~{loadings[1]} > merged_loadings.txt
-		tail -n +2 -q ~{sep=' ' loadings} >> merged_loadings.txt
-		# concatenate freqs
-		head -n 1 ~{freqs[1]} > merged_freqs.txt
-		tail -n +2 -q ~{sep=' ' freqs} >> merged_freqs.txt
 	>>>
+
+		# concatenate loadings
+		#head -n 1 ~{loadings[1]} > merged_loadings.txt
+		#tail -n +2 -q ~{sep=' ' loadings} >> merged_loadings.txt
+		# concatenate freqs
+		#head -n 1 ~{freqs[1]} > merged_freqs.txt
+		#tail -n +2 -q ~{sep=' ' freqs} >> merged_freqs.txt
 
 	output {
 		File out_pgen = "merged.pgen"
 		File out_pvar = "merged.pvar"
 		File out_psam = "merged.psam"
-		File out_loadings = "merged_loadings.txt"
-		File out_freqs = "merged_freqs.txt"
+		#File out_loadings = "merged_loadings.txt"
+		#File out_freqs = "merged_freqs.txt"
 	}
 
 	runtime {
@@ -148,7 +150,7 @@ task mergeFiles {
 task checkOverlap {
 	input {
 		File ref_loadings
-		File pca_loadings
+		File pvar
 	}
 
 	command <<<
@@ -157,11 +159,12 @@ task checkOverlap {
 			line_count=0
 			with open(myfile, "r") as infp:
 				for line in infp:
-					line_count=line_count + 1
+					if not (line.startswith("#")):
+						line_count=line_count + 1
 			return line_count
 		
 		loadings_count=countLines("~{ref_loadings}")
-		new_loadings_count=countLines("~{pca_loadings}")
+		new_loadings_count=countLines("~{pvar}")
 		proportion=float(new_loadings_count)/loadings_count
 		print("%.3f" % proportion)
 		CODE
