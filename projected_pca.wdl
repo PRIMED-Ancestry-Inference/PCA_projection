@@ -72,7 +72,9 @@ task prepareFiles {
 	command <<<
 		#get a list of variant names in common between the two, save to extract.txt
 		#variant name in loadings is assumed to be 3rd column, assuming plink2 format (https://www.cog-genomics.org/plink/2.0/formats#eigenvec)
-		awk '{print $2}' ~{ref_loadings} > extract.txt
+		#awk '{print $2}' ~{ref_loadings} > extract.txt
+		IDCOL=$(head -n1 ~{ref_loadings} | tr "\t" "\n" | grep -n ID | cut -d ":" -f1)
+		cut -f $IDCOL > extract.txt
 		#subset file with --extract extract.txt
 		/plink2 ~{prefix} ~{vcf} --extract extract.txt --make-pgen --out ~{basename}_pcaReady
 		awk '/^[^#]/ {print $3}' ~{basename}_pcaReady.pvar > selected_variants.txt
