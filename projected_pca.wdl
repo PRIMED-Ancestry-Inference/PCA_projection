@@ -5,7 +5,7 @@ workflow projected_PCA {
 		File ref_loadings
 		File ref_freqs
 		Array[File] vcf
-		Float overlap = 0.95
+		Float min_overlap = 0.95
 	}
 
 	scatter (file in vcf) {
@@ -33,7 +33,7 @@ workflow projected_PCA {
 			#pca_loadings = mergeFiles.out_loadings
 	}
 
-	if (checkOverlap.overlap >= overlap) {
+	if (checkOverlap.overlap >= min_overlap) {
 		call run_pca_projected {
 			input:
 				pgen = mergeFiles.out_pgen,
@@ -47,6 +47,7 @@ workflow projected_PCA {
 	output {
 		File? projection_file = run_pca_projected.projection_file
 		File? projection_log = run_pca_projected.projection_log
+		Float overlap = checkOverlap.overlap
 	}
 
 	meta {
