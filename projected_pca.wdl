@@ -31,9 +31,9 @@ workflow projected_PCA {
 		}
 	}
 
-	File final_pgen = select_first([mergeFiles.out_pgen, prepareFiles.subset_pgen[1]])
-	File final_pvar = select_first([mergeFiles.out_pvar, prepareFiles.subset_pvar[1]])
-	File final_psam = select_first([mergeFiles.out_psam, prepareFiles.subset_psam[1]])
+	File final_pgen = select_first([mergeFiles.out_pgen, prepareFiles.subset_pgen[0]])
+	File final_pvar = select_first([mergeFiles.out_pvar, prepareFiles.subset_pvar[0]])
+	File final_psam = select_first([mergeFiles.out_psam, prepareFiles.subset_psam[0]])
 
 	call checkOverlap {
 		input:
