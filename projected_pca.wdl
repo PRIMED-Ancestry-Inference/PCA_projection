@@ -8,12 +8,17 @@ workflow projected_PCA {
 		Float min_overlap = 0.95
 	}
 
+	call identifyColumns {
+		input:
+			ref_loadings = ref_loadings
+	}
+
 	scatter (file in vcf) {
 		call prepareFiles {
 			input:
 				ref_loadings = ref_loadings,
-				ref_freqs = ref_freqs,
-				vcf = file
+				vcf = file,
+				id_col = identifyColumns.id_col
 		}
 	}
 
@@ -38,7 +43,11 @@ workflow projected_PCA {
 				pvar = mergeFiles.out_pvar,
 				psam = mergeFiles.out_psam,
 				loadings = ref_loadings,
-				freq_file = ref_freqs
+				freq_file = ref_freqs,
+				id_col = identifyColumns.id_col,
+				allele_col = identifyColumns.allele_col,
+				pc_col_first = identifyColumns.pc_col_first,
+				pc_col_last = identifyColumns.pc_col_last
 		}
 	}
 
@@ -55,11 +64,42 @@ workflow projected_PCA {
 	}
 }
 
+
+task identifyColumns {
+	input {
+		File ref_loadings
+	}
+
+	command <<<
+		Rscript -e "\
+		dat <- readr::read_tsv('~(ref_loadings}')
+		writeLines(as.character(which(names(dat) == 'ID')), 'id_col.txt')
+		if (is.element('A1', names(dat))) allele_col <- 'A1' else allele_col <- 'ALT'
+		writeLines(as.character(which(names(dat) == allele_col)), 'allele_col.txt')
+		pc_cols <- grep('^PC', names(dat))
+		writeLines(as.character(pc_cols[1]), 'pc_col_first.txt')
+		writeLines(as.character(pc_cols[length(pc_cols)]), 'pc_col_last.txt')
+		"
+	>>>
+
+	output {
+		Int id_col = read_int("id_col.txt")
+		Int allele_col = read_int("allele_col.txt")
+		Int pc_col_first = read_int("pc_col_first.txt")
+		Int pc_col_last = read_int("pc_col_last.txt")
+	}
+
+	runtime {
+		docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
+	}
+}
+
+
 task prepareFiles {
 	input {
 		File ref_loadings
-		File ref_freqs
 		File vcf
+		Int id_col
 		Int mem_gb = 8
 	}
 
@@ -70,8 +110,7 @@ task prepareFiles {
 
 	command <<<
 		#get a list of variant names in common between the two, save to extract.txt
-		IDCOL=$(head -n1 ~{ref_loadings} | tr "\t" "\n" | grep -n ID | cut -d ":" -f1)
-		cut -f $IDCOL ~{ref_loadings} > extract.txt
+		cut -f ~{id_col} ~{ref_loadings} > extract.txt
 		#subset file with --extract extract.txt
 		/plink2 ~{prefix} ~{vcf} --extract extract.txt --make-pgen --out ~{basename}_pcaReady
 		awk '/^[^#]/ {print $3}' ~{basename}_pcaReady.pvar > selected_variants.txt
@@ -162,6 +201,10 @@ task run_pca_projected {
 		File psam
 		File loadings
 		File freq_file
+		Int id_col
+		Int allele_col
+		Int pc_col_first
+		Int pc_col_last
 		Int mem_gb = 8
 		Int n_cpus = 4
 	}
@@ -173,8 +216,8 @@ task run_pca_projected {
 		#https://www.cog-genomics.org/plink/2.0/score#pca_project
 		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--read-freq ~{freq_file} \
-			--score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
-			--score-col-nums 6-15 \
+			--score ~{loadings} ~{id_col} ~{allele_col} header-read no-mean-imputation variance-standardize \
+			--score-col-nums ~{pc_col_first}-~{pc_col_last} \
 			--out ~{basename}_proj_pca"
 		printf "${command}\n"
 		${command}
