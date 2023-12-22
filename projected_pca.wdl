@@ -22,26 +22,32 @@ workflow projected_PCA {
 		}
 	}
 
-	call mergeFiles {
-		input:
-			pgen = prepareFiles.subset_pgen,
-			pvar = prepareFiles.subset_pvar,
-			psam = prepareFiles.subset_psam
+	if (length(vcf) > 1) {
+		call mergeFiles {
+			input:
+				pgen = prepareFiles.subset_pgen,
+				pvar = prepareFiles.subset_pvar,
+				psam = prepareFiles.subset_psam
+		}
 	}
+
+	File final_pgen = select_first([mergeFiles.out_pgen, prepareFiles.subset_pgen])
+	File final_pvar = select_first([mergeFiles.out_pvar, prepareFiles.subset_pvar])
+	File final_psam = select_first([mergeFiles.out_psam, prepareFiles.subset_psam])
 
 	call checkOverlap {
 		input:
 			ref_loadings = ref_loadings,
-			pvar = mergeFiles.out_pvar
+			pvar = final_pvar
 	}
 
 	#check for overlap, if overlap is less than threshold, stop
 	if (checkOverlap.overlap >= min_overlap) {
 		call run_pca_projected {
 			input:
-				pgen = mergeFiles.out_pgen,
-				pvar = mergeFiles.out_pvar,
-				psam = mergeFiles.out_psam,
+				pgen = final_pgen,
+				pvar = final_pvar,
+				psam = final_psam,
 				loadings = ref_loadings,
 				freq_file = ref_freqs,
 				id_col = identifyColumns.id_col,
