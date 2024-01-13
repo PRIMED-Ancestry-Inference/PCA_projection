@@ -14,30 +14,30 @@ workflow projected_PCA {
 	}
 
 	scatter (file in vcf) {
-		call prepareFiles {
+		call subsetVariants {
 			input:
-				ref_loadings = ref_loadings,
 				vcf = file,
-				id_col = identifyColumns.id_col
+				variant_file = ref_loadings,
+				variant_id_col = identifyColumns.id_col
 		}
 	}
 
 	if (length(vcf) > 1) {
 		call mergeFiles {
 			input:
-				pgen = prepareFiles.subset_pgen,
-				pvar = prepareFiles.subset_pvar,
-				psam = prepareFiles.subset_psam
+				pgen = subsetVariants.subset_pgen,
+				pvar = subsetVariants.subset_pvar,
+				psam = subsetVariants.subset_psam
 		}
 	}
 
-	File final_pgen = select_first([mergeFiles.out_pgen, prepareFiles.subset_pgen[0]])
-	File final_pvar = select_first([mergeFiles.out_pvar, prepareFiles.subset_pvar[0]])
-	File final_psam = select_first([mergeFiles.out_psam, prepareFiles.subset_psam[0]])
+	File final_pgen = select_first([mergeFiles.out_pgen, subsetVariants.subset_pgen[0]])
+	File final_pvar = select_first([mergeFiles.out_pvar, subsetVariants.subset_pvar[0]])
+	File final_psam = select_first([mergeFiles.out_psam, subsetVariants.subset_psam[0]])
 
 	call checkOverlap {
 		input:
-			ref_loadings = ref_loadings,
+			variant_file = ref_loadings,
 			pvar = final_pvar
 	}
 
@@ -64,9 +64,9 @@ workflow projected_PCA {
 	}
 
 	meta {
-		author: "Jonathan Shortt"
+		author: "Jonathan Shortt, Stephanie Gogarten"
 		email: "jonathan.shortt@cuanschutz.edu"
-		description: "This workflow is used to project a genetic test dataset (in plink format, i.e., .bed/.bim/.fam) into PCA space using user-defined allele loadings. First, the allele loadings (from the create_pca_projection workflow) and the test dataset are both subset to contain the same set of variants (Note: this workflow assumes that variants from both the loadings and test dataset have been previously harmonized such that variants follow the same naming convention, alleles at each site are ordered identically, and variants are sorted). Then the test dataset is projected onto the principal components."
+		description: "This workflow is used to project a genetic test dataset (in VCF format) into PCA space using user-defined allele loadings. First, the allele loadings (from the create_pca_projection workflow) and the test dataset are both subset to contain the same set of variants (Note: this workflow assumes that variants from both the loadings and test dataset have been previously harmonized such that variants follow the same naming convention, alleles at each site are ordered identically, and variants are sorted). Then the test dataset is projected onto the principal components."
 	}
 }
 
@@ -101,11 +101,11 @@ task identifyColumns {
 }
 
 
-task prepareFiles {
+task subsetVariants {
 	input {
-		File ref_loadings
 		File vcf
-		Int id_col
+		File variant_file
+		Int variant_id_col
 		Int mem_gb = 8
 	}
 
@@ -116,18 +116,18 @@ task prepareFiles {
 
 	command <<<
 		#get a list of variant names in common between the two, save to extract.txt
-		cut -f ~{id_col} ~{ref_loadings} > extract.txt
+		cut -f ~{variant_id_col} ~{variant_file} > extract.txt
 		#subset file with --extract extract.txt
-		/plink2 ~{prefix} ~{vcf} --extract extract.txt --make-pgen --out ~{basename}_pcaReady
-		awk '/^[^#]/ {print $3}' ~{basename}_pcaReady.pvar > selected_variants.txt
+		/plink2 ~{prefix} ~{vcf} --extract extract.txt --make-pgen --out ~{basename}_subset
+		awk '/^[^#]/ {print $3}' ~{basename}_subset.pvar > selected_variants.txt
 	>>>
 
 	output {
 		File snps_to_keep="selected_variants.txt"
-		File subset_pgen="~{basename}_pcaReady.pgen"
-		File subset_pvar="~{basename}_pcaReady.pvar"
-		File subset_psam="~{basename}_pcaReady.psam"
-		File subset_log="~{basename}_pcaReady.log"
+		File subset_pgen="~{basename}_subset.pgen"
+		File subset_pvar="~{basename}_subset.pvar"
+		File subset_psam="~{basename}_subset.psam"
+		File subset_log="~{basename}_subset.log"
 	}
 
 	runtime {
@@ -170,7 +170,7 @@ task mergeFiles {
 
 task checkOverlap {
 	input {
-		File ref_loadings
+		File variant_file
 		File pvar
 	}
 
@@ -184,7 +184,7 @@ task checkOverlap {
 						line_count=line_count + 1
 			return line_count
 		
-		loadings_count=countLines("~{ref_loadings}")
+		loadings_count=countLines("~{variant_file}")
 		new_loadings_count=countLines("~{pvar}")
 		proportion=float(new_loadings_count)/loadings_count
 		print("%.3f" % proportion)
