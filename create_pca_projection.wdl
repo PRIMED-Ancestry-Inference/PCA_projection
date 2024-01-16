@@ -1,30 +1,47 @@
 version 1.0
 
+import "projected_pca.wdl" as tasks
+
+task identifyColumns {
+	input {
+		File ref_variants
+	}
+
+	command <<<
+		Rscript -e "\
+		dat <- readr::read_tsv('~{ref_variants}')
+		writeLines(as.character(which(names(dat) == 'ID')), 'id_col.txt')
+		"
+	>>>
+
+	output {
+		Int id_col = read_int("id_col.txt")
+	}
+
+	runtime {
+		docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
+	}
+}
+
+
 #remove related individuals
 task removeRelateds {
 	input {
-		File bed
-		File bim
-		File fam
+		File pgen
+		File pvar
+		File psam
 		Float max_kinship_coefficient = 0.0442
 		Int mem_gb = 8
 	}
 
-	#Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
-	String basename = basename(bed, ".bed")
+	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
+	String basename = basename(pgen, ".pgen")
 
 	command <<<
-		#make the kinship matrix- #this is recommended when accessing the matrix numerous times but may be less efficient here
-		#command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-		#--make-king triangle bin \
-		#--out ref_kin"
-		#printf "${command}\n"
-		#${command}
-
 		#identify individuals who are less related than kinship threshold
-		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 		--king-cutoff ~{max_kinship_coefficient} \
-		--make-bed \
+		--make-pgen \
 		--out ~{basename}_unrel"
 		printf "${command}\n"
 		${command}
@@ -32,88 +49,45 @@ task removeRelateds {
 
 	output {
 		#File subset_keep_inds="~{basename}.king.cutoff.in.id"
-		File out_bed="~{basename}_unrel.bed"
-		File out_bim="~{basename}_unrel.bim"
-		File out_fam="~{basename}_unrel.fam"
+		File out_pgen="~{basename}_unrel.pgen"
+		File out_pvar="~{basename}_unrel.pvar"
+		File out_psam="~{basename}_unrel.psam"
 	}
 
 	runtime {
-		docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
-		#disks: "local-disk " + disk_size + " HDD"
+		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
+		disks: "local-disk " + disk_size + " SSD"
 		memory: mem_gb + " GB"
 	}
 }
 
-#extract variants in common with some database (don't want to create PC's with SNPs that won't be found in most datasets)
-task extractOverlap {
-	input{
-		File ref_bim
-		File bed
-		File bim
-		File fam
-		Int mem_gb = 8
-	}
-
-	#Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
-	String basename = basename(bed, ".bed")
-
-	command <<<
-		#get a list of variant names in common between the two, save to extract.txt
-		awk 'FNR==NR{a[$2]; next}{if($2 in a){print $2}}' ~{ref_bim} ~{bim} > extract.txt
-
-		#subset bed with --extract extract.txt
-		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-			--keep-allele-order \
-			--extract extract.txt \
-			--make-bed \
-			--out ~{basename}_overlap"
-		printf "${command}\n"
-		${command}
-	>>>
-
-	output {
-		File snps_to_keep="extract.txt"
-		File subset_bed="~{basename}_overlap.bed"
-		File subset_bim="~{basename}_overlap.bim"
-		File subset_fam="~{basename}_overlap.fam"
-		File subset_log="~{basename}_overlap.log"
-	}
-
-	runtime {
-		docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
-		#disks: "local-disk " + disk_size + " HDD"
-		memory: mem_gb + " GB"
-	}
-}
 
 #prune dataset by linkage
 task pruneVars {
 	input{
-		File bed
-		File bim
-		File fam
-		#File keep_inds
+		File pgen
+		File pvar
+		File psam
 		Int window_size = 10000
 		Int shift_size = 1000
 		Float r2_threshold = 0.1
 		Int mem_gb = 8
 	}
 
-	#Float disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) * 1.5	#hoping this works?
-	String basename = basename(bed, ".bed")
+	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
+	String basename = basename(pgen, ".pgen")
 	
 	command <<<
-		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-			--keep-allele-order \
+		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
 			--out ~{basename}_indep"
 		printf "${command}\n"
 		${command}
 
 		# extract pruned variants
-		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--extract ~{basename}_indep.prune.in \
-			--make-bed \
+			--make-pgen \
 			--out ~{basename}_pruned"
 		printf "${command}\n"
 		${command}
@@ -121,33 +95,33 @@ task pruneVars {
 
 	output {
 		#File subset_keep_vars="~{basename}_indep.prune.in"
-		File out_bed="~{basename}_pruned.bed"
-		File out_bim="~{basename}_pruned.bim"
-		File out_fam="~{basename}_pruned.fam"
+		File out_pgen="~{basename}_pruned.pgen"
+		File out_pvar="~{basename}_pruned.pvar"
+		File out_psam="~{basename}_pruned.psam"
 	}
 
 	runtime {
-		docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
-		#disks: "local-disk " + disk_size + " HDD"
+		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
+		disks: "local-disk " + disk_size + " SSD"
 		memory: mem_gb + " GB"
 	}
 }
 
+
 task make_pca_loadings {
 	input {
-		File bed
-		File bim
-		File fam
-		#File keep_inds
-		#File keep_vars
+		File pgen
+		File pvar
+		File psam
+		Int mem_gb = 8
+		Int n_cpus = 4
 	}
 
-	#Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
-	String basename = basename(bed, ".bed")
-	#ln --symbolic ${P} ${basename}.${k}.P.in
+	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
+	String basename = basename(pgen, ".pgen")
 
 	command <<<
-		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--freq counts \
 			--pca allele-wts \
 			--out ~{basename}_snp_loadings"
@@ -157,140 +131,119 @@ task make_pca_loadings {
 
 	runtime {
 		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-		#docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
-		#disks: "local-disk " + disk_size + " HDD"
-		#memory: mem_gb + " GB"
-		#cpu: n_cpus
+		disks: "local-disk " + disk_size + " SSD"
+		memory: mem_gb + " GB"
+		cpu: n_cpus
 	}
 
 	output {
-		#check output file name from --score in plink2
 		File var_freq_counts = "~{basename}_snp_loadings.acount"
 		File snp_loadings = "~{basename}_snp_loadings.eigenvec.allele" 
 		File projection_log = "~{basename}_snp_loadings.log"
 	}
 }
 
-#run the reference panel with loadings just created- can take most of this from other workflow
-task run_pca_projected {
-	input {
-		File bed
-		File bim
-		File fam
-		#File keep_vars
-		File loadings
-		File freq_file
-	}
-
-	#Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
-	String basename = basename(bed, ".bed")
-
-	command <<<
-		#https://www.cog-genomics.org/plink/2.0/score#pca_project
-#		command="/plink2 --bed ${basename} \
-		command="/plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-			--read-freq ~{freq_file} \
-			--score ~{loadings} 2 5 header-read no-mean-imputation variance-standardize \
-			--score-col-nums 6-15 \
-			--out ~{basename}_proj_pca"
-		printf "${command}\n"
-		${command}
-	>>>
-
-	runtime {
-		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-		#docker: "us.gcr.io/broad-dsde-methods/plink2_docker@sha256:4455bf22ada6769ef00ed0509b278130ed98b6172c91de69b5bc2045a60de124"
-		#disks: "local-disk " + disk_size + " HDD"
-		#memory: mem_gb + " GB"
-		#cpu: n_cpus
-	}
-
-	output {
-		#check output file name from --score in plink2
-		File pca_projection = "~{basename}_proj_pca.sscore"
-		File projection_log = "~{basename}_proj_pca.log"
-	}
-}
 
 workflow create_pca_projection {
 	input{ 
-		File bed
-		File bim
-		File fam
-		File ref_bim
+		Array[File] vcf
+		File ref_variants
    	 	Boolean remove_relateds = true
 		Float? max_kinship_coefficient
     	Boolean prune_variants = true
 		Int? window_size
 		Int? shift_size
 		Int? r2_threshold
-		#String? mem_gb
-		#Int? n_cpus
 	}
 
-	call extractOverlap {
+	call identifyColumns {
 		input:
-			ref_bim = ref_bim,
-			bed = bed,
-			bim = bim,
-			fam = fam
+			ref_variants = ref_variants
 	}
+
+	scatter (file in vcf) {
+		call tasks.subsetVariants {
+			input:
+				vcf = file,
+				variant_file = ref_variants,
+				variant_id_col = identifyColumns.id_col
+		}
+
+		if (prune_variants) {
+			call pruneVars {
+				input:
+					pgen = subsetVariants.subset_pgen,
+					pvar = subsetVariants.subset_pvar,
+					psam = subsetVariants.subset_psam,
+					window_size = window_size,
+					shift_size = shift_size,
+					r2_threshold = r2_threshold
+			}
+		}
+
+		File subset_pgen = select_first([pruneVars.out_pgen, subsetVariants.subset_pgen])
+		File subset_pvar = select_first([pruneVars.out_pvar, subsetVariants.subset_pvar])
+		File subset_psam = select_first([pruneVars.out_psam, subsetVariants.subset_psam])
+	}
+
+	if (length(vcf) > 1) {
+		call tasks.mergeFiles {
+			input:
+				pgen = subset_pgen,
+				pvar = subset_pvar,
+				psam = subset_psam
+		}
+	}
+
+	File merged_pgen = select_first([mergeFiles.out_pgen, pruneVars.out_pgen[0], subsetVariants.subset_pgen[0]])
+	File merged_pvar = select_first([mergeFiles.out_pvar, pruneVars.out_pvar[0], subsetVariants.subset_pvar[0]])
+	File merged_psam = select_first([mergeFiles.out_psam, pruneVars.out_psam[0], subsetVariants.subset_psam[0]])
 
   	if (remove_relateds) {
 		call removeRelateds {
 			input:
-				bed = extractOverlap.subset_bed,
-				bim = extractOverlap.subset_bim,
-				fam = extractOverlap.subset_fam,
+				pgen = merged_pgen,
+				pvar = merged_pvar,
+				psam = merged_psam,
 				max_kinship_coefficient = max_kinship_coefficient
 		}
 	}
 
-	if (prune_variants) {
-		call pruneVars {
-			input:
-				bed = select_first([removeRelateds.out_bed, extractOverlap.subset_bed]),
-				bim = select_first([removeRelateds.out_bim, extractOverlap.subset_bim]),
-				fam = select_first([removeRelateds.out_fam, extractOverlap.subset_fam]),
-				window_size = window_size,
-				shift_size = shift_size,
-				r2_threshold = r2_threshold
-		}
-	}
-
-	File final_bed = select_first([pruneVars.out_bed, removeRelateds.out_bed, extractOverlap.subset_bed])
-	File final_bim = select_first([pruneVars.out_bim, removeRelateds.out_bim, extractOverlap.subset_bim])
-	File final_fam = select_first([pruneVars.out_fam, removeRelateds.out_fam, extractOverlap.subset_fam])
+	File final_pgen = select_first([removeRelateds.out_pgen, merged_pgen])
+	File final_pvar = select_first([removeRelateds.out_pvar, merged_pvar])
+	File final_psam = select_first([removeRelateds.out_psam, merged_psam])	
 
 	call make_pca_loadings {
 		input:
-			bed = final_bed,
-			bim = final_bim,
-			fam = final_fam
+			pgen = final_pgen,
+			pvar = final_pvar,
+			psam = final_psam
 	}
 
-	call run_pca_projected {
+	call tasks.run_pca_projected {
 		input:
-			bed = extractOverlap.subset_bed,
-			bim = extractOverlap.subset_bim,
-			fam = extractOverlap.subset_fam,
+			pgen = merged_pgen,
+			pvar = merged_pvar,
+			psam = merged_psam,
 			loadings = make_pca_loadings.snp_loadings,
 			freq_file = make_pca_loadings.var_freq_counts,
-			#mem_gb = mem_gb,
-			#n_cpus = n_cpus
+			id_col = 2,
+			allele_col = 5,
+			pc_col_first = 6,
+			pc_col_last = 15
 	}
 
 	output {
 		File var_freq_counts = make_pca_loadings.var_freq_counts
 		File snp_loadings =  make_pca_loadings.snp_loadings
 		File loadings_log =  make_pca_loadings.projection_log
-		File pca_projection = run_pca_projected.pca_projection
+		File pca_projection = run_pca_projected.projection_file
 		File projection_log = run_pca_projected.projection_log
 	}
 
 	meta {
-		author: "Jonathan Shortt"
+		author: "Jonathan Shortt, Stephanie Gogarten"
 		email: "jonathan.shortt@cuanschutz.edu"
-		description: "This workflow is used to create a pca projection from a genetic reference dataset (in plink format, i.e., .bed/.bim/.fam). First, the reference data is subsetted to include only sites in common with a provided reference .bim (intended to contain only variants that one would expect to find in all downstream datsets that will be projected using loadings created in this worflow (e.g., a list of common sites that are easily imputed in TOPMed)), and then pruned for linkage equilibrium (after removing related individuals). Then PCA is run on the dataset."
+		description: "This workflow is used to create a pca projection from a genetic reference dataset (in VCF format). First, the reference data is subsetted to include only sites in common with a provided reference variant file (intended to contain only variants that one would expect to find in all downstream datsets that will be projected using loadings created in this worflow (e.g., a list of common sites that are easily imputed in TOPMed)), and then pruned for linkage equilibrium. The related individuals are removed. Then PCA is run on the dataset."
 	}
 }
