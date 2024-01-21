@@ -148,9 +148,9 @@ workflow create_pca_projection {
 	input{ 
 		Array[File] vcf
 		File ref_variants
+    	Boolean prune_variants = true
    	 	Boolean remove_relateds = true
 		Float? max_kinship_coefficient
-    	Boolean prune_variants = true
 		Int? window_size
 		Int? shift_size
 		Int? r2_threshold
