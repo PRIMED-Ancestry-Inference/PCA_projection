@@ -1,7 +1,27 @@
 {
-"make_pca_projection.ref_bim": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/testing/projected_admixture_files/ref.bim",
-"make_pca_projection.bed": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/testing/projected_admixture_files/test.bed",
-"make_pca_projection.bim": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/testing/projected_admixture_files/test.bim",
-"make_pca_projection.fam": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/testing/projected_admixture_files/test.fam",
-"make_pca_projection.max_kinship_coefficient": 0.0884
+    "create_pca_projection.ref_variants": "gs://fc-0c05ad53-4513-482a-8f92-c3d0004f72bc/phase3_2504_samples/all_phase3_ns.pvar",
+    "create_pca_projection.vcf": [
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr2.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr3.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr4.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr5.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr6.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr7.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr8.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr9.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr10.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr11.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr12.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr13.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr14.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr15.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr16.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr17.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr18.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr19.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr20.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr21.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz"
+    ]
 }
