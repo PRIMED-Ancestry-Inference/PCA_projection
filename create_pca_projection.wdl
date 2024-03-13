@@ -114,7 +114,7 @@ task identifyColumns {
 
 	command <<<
 		Rscript -e "\
-		dat <- readr::read_tsv('~{ref_variants}')
+		dat <- readr::read_tsv('~{ref_variants}', comment = '##')
 		writeLines(as.character(which(names(dat) == 'ID')), 'id_col.txt')
 		"
 	>>>
