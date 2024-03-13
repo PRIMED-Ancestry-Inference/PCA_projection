@@ -184,7 +184,7 @@ task pruneVars {
 	
 	command <<<
 		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
-			--indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
+			--rm-dup --indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
 			--out ~{basename}_indep"
 		printf "${command}\n"
 		${command}
