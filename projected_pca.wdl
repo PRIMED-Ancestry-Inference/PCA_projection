@@ -151,7 +151,7 @@ task mergeFiles {
 	command <<<
 		# merge plink files
 		cat ~{write_lines(pgen)} | sed 's/.pgen//' > pfile.txt
-		/plink2 --pmerge-list pfile.txt --out merged
+		/plink2 --pmerge-list pfile.txt --merge-max-allele-ct 2 --out merged
 	>>>
 
 	output {
