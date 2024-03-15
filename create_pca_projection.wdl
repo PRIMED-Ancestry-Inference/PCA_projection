@@ -184,7 +184,8 @@ task pruneVars {
 	
 	command <<<
 		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
-			--rm-dup force-first --indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
+			--rm-dup force-first --set-missing-var-ids @:#:\$r:\$a \
+			--indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
 			--out ~{basename}_indep"
 		printf "${command}\n"
 		${command}
