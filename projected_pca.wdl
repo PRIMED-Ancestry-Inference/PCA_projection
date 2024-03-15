@@ -146,7 +146,7 @@ task mergeFiles {
 		Int mem_gb = 16
 	}
 
-	Int disk_size = ceil(3*(size(pgen, "GB")))
+	Int disk_size = ceil(3*(size(pgen, "GB"))) + 10
 
 	command <<<
 		# merge plink files
