@@ -78,7 +78,7 @@ task identifyColumns {
 
 	command <<<
 		Rscript -e "\
-		dat <- readr::read_tsv('~{ref_loadings}')
+		dat <- readr::read_tsv('~{ref_loadings}', n_max=100)
 		writeLines(as.character(which(names(dat) == 'ID')), 'id_col.txt')
 		if (is.element('A1', names(dat))) allele_col <- 'A1' else allele_col <- 'ALT'
 		writeLines(as.character(which(names(dat) == allele_col)), 'allele_col.txt')
