@@ -109,7 +109,7 @@ task subsetVariants {
 		Int mem_gb = 8
 	}
 
-	Int disk_size = ceil(2.5*(size(vcf, "GB")))
+	Int disk_size = ceil(2.5*(size(vcf, "GB"))) + 5
 	String filename = basename(vcf)
 	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
 	String prefix = if (sub(filename, ".bcf", "") != filename) then "--bcf" else "--vcf"
