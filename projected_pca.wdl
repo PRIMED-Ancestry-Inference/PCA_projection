@@ -104,8 +104,10 @@ task identifyColumns {
 task subsetVariants {
 	input {
 		File vcf
-		File variant_file
-		Int variant_id_col
+		File? variant_file
+		Int? variant_id_col
+		Boolean snps_only = true
+		Boolean rm_dup = true
 		Int mem_gb = 8
 	}
 
@@ -116,9 +118,13 @@ task subsetVariants {
 
 	command <<<
 		#get a list of variant names in common between the two, save to extract.txt
-		cut -f ~{variant_id_col} ~{variant_file} > extract.txt
+		if [ -f ~{variant_file} ]; then cut -f ~{variant_id_col} ~{variant_file} > extract.txt; fi
 		#subset file with --extract extract.txt
-		/plink2 ~{prefix} ~{vcf} --extract extract.txt --make-pgen --out ~{basename}_subset
+		/plink2 ~{prefix} ~{vcf} ${true="--extract extract.txt" false="" defined(variant_file)} \
+			${true="--snps-only 'just-acgt'" false="" snps_only} \
+			${true="--rm-dup force-first" false="" rm_dup} \
+			--set-missing-var-ids @:#:\$r:\$a \
+			--make-pgen --out ~{basename}_subset
 		awk '/^[^#]/ {print $3}' ~{basename}_subset.pvar > selected_variants.txt
 	>>>
 
