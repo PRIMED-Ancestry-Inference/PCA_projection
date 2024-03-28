@@ -120,9 +120,9 @@ task subsetVariants {
 		#get a list of variant names in common between the two, save to extract.txt
 		if [ -f ~{variant_file} ]; then cut -f ~{variant_id_col} ~{variant_file} > extract.txt; fi
 		#subset file with --extract extract.txt
-		echo /plink2 ~{prefix} ~{vcf} ${true="--extract extract.txt" false="" defined(variant_file)} \
-			${true="--snps-only 'just-acgt'" false="" snps_only} \
-			${true=--rm-dup force-first"" false="" rm_dup} \
+		echo /plink2 ~{prefix} ~{vcf} ~{true="--extract extract.txt" false="" defined(variant_file)} \
+			~{true="--snps-only 'just-acgt'" false="" snps_only} \
+			~{true="--rm-dup force-first" false="" rm_dup} \
 			--set-missing-var-ids @:#:\$r:\$a \
 			--make-pgen --out ~{basename}_subset
 		#awk '/^[^#]/ {print $3}' ~{basename}_subset.pvar > selected_variants.txt
