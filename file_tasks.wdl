@@ -5,6 +5,7 @@ task mergeFiles {
 		Array[File] pgen
 		Array[File] pvar
 		Array[File] psam
+		Boolean rm_dup = true
 		Int mem_gb = 16
 	}
 
@@ -13,7 +14,9 @@ task mergeFiles {
 	command <<<
 		# merge plink files
 		cat ~{write_lines(pgen)} | sed 's/.pgen//' > pfile.txt
-		/plink2 --pmerge-list pfile.txt --merge-max-allele-ct 2 --out merged
+		/plink2 --pmerge-list pfile.txt --merge-max-allele-ct 2 --out tmp
+		/plink2 --pfile tmp --make-pgen --out merged \
+			~{true="--rm-dup exclude-all" false="" rm_dup}
 	>>>
 
 	output {
