@@ -1,6 +1,9 @@
 version 1.0
 
-import "projected_pca.wdl" as tasks
+import "variant_filtering.wdl" as variant_tasks
+import "sample_filtering.wdl" as sample_tasks
+import "file_tasks.wdl" as file_tasks
+import "pca_tasks.wdl" as pca_tasks
 
 workflow create_pca_projection {
 	input{ 
@@ -8,6 +11,7 @@ workflow create_pca_projection {
 		File ref_variants
     	Boolean prune_variants = true
    	 	Boolean remove_relateds = true
+		Float? min_maf
 		Float? max_kinship_coefficient
 		Int? window_size
 		Int? shift_size
@@ -20,15 +24,16 @@ workflow create_pca_projection {
 	}
 
 	scatter (file in vcf) {
-		call tasks.subsetVariants {
+		call variant_tasks.subsetVariants {
 			input:
 				vcf = file,
 				variant_file = ref_variants,
-				variant_id_col = identifyColumns.id_col
+				variant_id_col = identifyColumns.id_col,
+				min_maf = min_maf
 		}
 
 		if (prune_variants) {
-			call pruneVars {
+			call variant_tasks.pruneVars {
 				input:
 					pgen = subsetVariants.subset_pgen,
 					pvar = subsetVariants.subset_pvar,
@@ -45,7 +50,7 @@ workflow create_pca_projection {
 	}
 
 	if (length(vcf) > 1) {
-		call tasks.mergeFiles {
+		call file_tasks.mergeFiles {
 			input:
 				pgen = subset_pgen,
 				pvar = subset_pvar,
@@ -58,7 +63,7 @@ workflow create_pca_projection {
 	File merged_psam = select_first([mergeFiles.out_psam, pruneVars.out_psam[0], subsetVariants.subset_psam[0]])
 
   	if (remove_relateds) {
-		call removeRelateds {
+		call sample_tasks.removeRelateds {
 			input:
 				pgen = merged_pgen,
 				pvar = merged_pvar,
@@ -71,14 +76,14 @@ workflow create_pca_projection {
 	File final_pvar = select_first([removeRelateds.out_pvar, merged_pvar])
 	File final_psam = select_first([removeRelateds.out_psam, merged_psam])	
 
-	call make_pca_loadings {
+	call pca_tasks.make_pca_loadings {
 		input:
 			pgen = final_pgen,
 			pvar = final_pvar,
 			psam = final_psam
 	}
 
-	call tasks.run_pca_projected {
+	call pca_tasks.run_pca_projected {
 		input:
 			pgen = merged_pgen,
 			pvar = merged_pvar,
@@ -125,126 +130,5 @@ task identifyColumns {
 
 	runtime {
 		docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
-	}
-}
-
-
-#remove related individuals
-task removeRelateds {
-	input {
-		File pgen
-		File pvar
-		File psam
-		Float max_kinship_coefficient = 0.0442
-		Int mem_gb = 8
-	}
-
-	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
-	String basename = basename(pgen, ".pgen")
-
-	command <<<
-		#identify individuals who are less related than kinship threshold
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
-		--king-cutoff ~{max_kinship_coefficient} \
-		--make-pgen \
-		--out ~{basename}_unrel"
-		printf "${command}\n"
-		${command}
-	>>>
-
-	output {
-		#File subset_keep_inds="~{basename}.king.cutoff.in.id"
-		File out_pgen="~{basename}_unrel.pgen"
-		File out_pvar="~{basename}_unrel.pvar"
-		File out_psam="~{basename}_unrel.psam"
-	}
-
-	runtime {
-		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-		disks: "local-disk " + disk_size + " SSD"
-		memory: mem_gb + " GB"
-	}
-}
-
-
-#prune dataset by linkage
-task pruneVars {
-	input{
-		File pgen
-		File pvar
-		File psam
-		Int window_size = 10000
-		Int shift_size = 1000
-		Float r2_threshold = 0.1
-		Int mem_gb = 8
-	}
-
-	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
-	String basename = basename(pgen, ".pgen")
-	
-	command <<<
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
-			--rm-dup force-first --set-missing-var-ids @:#:\$r:\$a \
-			--indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
-			--out ~{basename}_indep"
-		printf "${command}\n"
-		${command}
-
-		# extract pruned variants
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
-			--extract ~{basename}_indep.prune.in \
-			--make-pgen \
-			--out ~{basename}_pruned"
-		printf "${command}\n"
-		${command}
-	>>>
-
-	output {
-		#File subset_keep_vars="~{basename}_indep.prune.in"
-		File out_pgen="~{basename}_pruned.pgen"
-		File out_pvar="~{basename}_pruned.pvar"
-		File out_psam="~{basename}_pruned.psam"
-	}
-
-	runtime {
-		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-		disks: "local-disk " + disk_size + " SSD"
-		memory: mem_gb + " GB"
-	}
-}
-
-
-task make_pca_loadings {
-	input {
-		File pgen
-		File pvar
-		File psam
-		Int mem_gb = 8
-		Int n_cpus = 4
-	}
-
-	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
-	String basename = basename(pgen, ".pgen")
-
-	command <<<
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
-			--freq counts \
-			--pca allele-wts \
-			--out ~{basename}_snp_loadings"
-		printf "${command}\n"
-		${command}
-	>>>
-
-	runtime {
-		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-		disks: "local-disk " + disk_size + " SSD"
-		memory: mem_gb + " GB"
-		cpu: n_cpus
-	}
-
-	output {
-		File var_freq_counts = "~{basename}_snp_loadings.acount"
-		File snp_loadings = "~{basename}_snp_loadings.eigenvec.allele" 
-		File projection_log = "~{basename}_snp_loadings.log"
 	}
 }

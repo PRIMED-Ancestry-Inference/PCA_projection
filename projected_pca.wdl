@@ -1,5 +1,9 @@
 version 1.0
 
+import "variant_filtering.wdl" as variant_tasks
+import "file_tasks.wdl" as file_tasks
+import "pca_tasks.wdl" as pca_tasks
+
 workflow projected_PCA {
 	input {
 		File ref_loadings
@@ -14,7 +18,7 @@ workflow projected_PCA {
 	}
 
 	scatter (file in vcf) {
-		call subsetVariants {
+		call variant_tasks.subsetVariants {
 			input:
 				vcf = file,
 				variant_file = ref_loadings,
@@ -23,7 +27,7 @@ workflow projected_PCA {
 	}
 
 	if (length(vcf) > 1) {
-		call mergeFiles {
+		call file_tasks.mergeFiles {
 			input:
 				pgen = subsetVariants.subset_pgen,
 				pvar = subsetVariants.subset_pvar,
@@ -43,7 +47,7 @@ workflow projected_PCA {
 
 	#check for overlap, if overlap is less than threshold, stop
 	if (checkOverlap.overlap >= min_overlap) {
-		call run_pca_projected {
+		call pca_tasks.run_pca_projected {
 			input:
 				pgen = final_pgen,
 				pvar = final_pvar,
@@ -101,73 +105,6 @@ task identifyColumns {
 }
 
 
-task subsetVariants {
-	input {
-		File vcf
-		File variant_file
-		Int variant_id_col
-		Int mem_gb = 8
-	}
-
-	Int disk_size = ceil(2.5*(size(vcf, "GB"))) + 5
-	String filename = basename(vcf)
-	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
-	String prefix = if (sub(filename, ".bcf", "") != filename) then "--bcf" else "--vcf"
-
-	command <<<
-		#get a list of variant names in common between the two, save to extract.txt
-		cut -f ~{variant_id_col} ~{variant_file} > extract.txt
-		#subset file with --extract extract.txt
-		/plink2 ~{prefix} ~{vcf} --extract extract.txt --make-pgen --out ~{basename}_subset
-		awk '/^[^#]/ {print $3}' ~{basename}_subset.pvar > selected_variants.txt
-	>>>
-
-	output {
-		File snps_to_keep="selected_variants.txt"
-		File subset_pgen="~{basename}_subset.pgen"
-		File subset_pvar="~{basename}_subset.pvar"
-		File subset_psam="~{basename}_subset.psam"
-		File subset_log="~{basename}_subset.log"
-	}
-
-	runtime {
-		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-		disks: "local-disk " + disk_size + " SSD"
-		memory: mem_gb + " GB"
-	}
-}
-
-
-task mergeFiles {
-	input {
-		Array[File] pgen
-		Array[File] pvar
-		Array[File] psam
-		Int mem_gb = 16
-	}
-
-	Int disk_size = ceil(3*(size(pgen, "GB"))) + 10
-
-	command <<<
-		# merge plink files
-		cat ~{write_lines(pgen)} | sed 's/.pgen//' > pfile.txt
-		/plink2 --pmerge-list pfile.txt --merge-max-allele-ct 2 --out merged
-	>>>
-
-	output {
-		File out_pgen = "merged.pgen"
-		File out_pvar = "merged.pvar"
-		File out_psam = "merged.psam"
-	}
-
-	runtime {
-		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-		disks: "local-disk " + disk_size + " SSD"
-		memory: mem_gb + " GB"
-	}
-}
-
-
 task checkOverlap {
 	input {
 		File variant_file
@@ -197,47 +134,5 @@ task checkOverlap {
 
 	runtime {
 		docker: "us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian"
-	}
-}
-
-task run_pca_projected {
-	input {
-		File pgen
-		File pvar
-		File psam
-		File loadings
-		File freq_file
-		Int id_col
-		Int allele_col
-		Int pc_col_first
-		Int pc_col_last
-		Int mem_gb = 8
-		Int n_cpus = 4
-	}
-
-	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
-	String basename = basename(pgen, ".pgen")
-
-	command <<<
-		#https://www.cog-genomics.org/plink/2.0/score#pca_project
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
-			--read-freq ~{freq_file} \
-			--score ~{loadings} ~{id_col} ~{allele_col} header-read no-mean-imputation variance-standardize \
-			--score-col-nums ~{pc_col_first}-~{pc_col_last} \
-			--out ~{basename}_proj_pca"
-		printf "${command}\n"
-		${command}
-	>>>
-
-	runtime {
-		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-		disks: "local-disk " + disk_size + " SSD"
-		memory: mem_gb + " GB"
-		cpu: n_cpus
-	}
-
-	output {
-		File projection_file = "~{basename}_proj_pca.sscore"
-		File projection_log = "~{basename}_proj_pca.log"
 	}
 }
