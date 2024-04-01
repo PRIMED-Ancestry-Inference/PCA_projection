@@ -14,3 +14,8 @@ workflows:
       - orcid: 0000-0002-7989-5420
     testParameterFiles:
        - /create_pca_projection.json
+  - name: LD_pruning
+    subclass: WDL
+    primaryDescriptorPath: ld_pruning.wdl
+    testParameterFiles:
+       - /ld_pruning.json

@@ -1,0 +1,7 @@
+{
+    "LD_pruning.vcf" : [
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr21.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz"
+    ],
+    "LD_pruning.min_maf": 0.01
+}
