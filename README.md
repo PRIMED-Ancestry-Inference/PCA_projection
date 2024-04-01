@@ -13,6 +13,7 @@ input | description
 vcf | Array of VCF files (possibly split by chromosome)
 ref_variants | file with variants to use in the PCA calculation. The column with variant IDs should be labeled 'ID'.
 prune_variants | Boolean for whether to do LD pruning on the variants (default true)
+min_maf | minimum MAF for variants to include (optional)
 remove_relateds | Boolean for whether to remove samples with relatedness above max_kinship_coefficient (default true)
 max_kinship_coefficient | if remove_relateds is true, remove one of each pair of samples with kinship > this value (default 0.0442 = 3rd degree relatives)
 window_size | window size for LD pruning (default 10,000)
@@ -52,3 +53,28 @@ output | description
 --- | ---
 projection_file | PCs from running PCA on this dataset with ref_loadings
 projection_log | log from running plink2 --score
+
+
+
+## LD pruning
+
+This workflow prunes variants for linkage equilibrium.
+
+Inputs:
+
+input | description
+--- | ---
+vcf | Array of VCF files (possibly split by chromosome)
+variant_file | Optional file with variant selection to start the pruning
+variant_id_col | Column in variant_file containing the IDs
+min_maf | minimum MAF for variants to include (optional)
+snps_only | Boolean for whether to use only SNPs (default true) 
+window_size | window size for LD pruning (default 10,000)
+shift_size | shift size for LD pruning (default 1000)
+r2_threshold | r2 threshold for LD pruning (default 0.1)
+
+Outputs:
+
+output | description
+--- | ---
+pruned_vcf | Array of pruned VCF files
