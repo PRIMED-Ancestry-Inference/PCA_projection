@@ -16,6 +16,6 @@ workflows:
        - /create_pca_projection.json
   - name: LD_pruning
     subclass: WDL
-    primaryDescriptorPath: ld_pruning.wdl
+    primaryDescriptorPath: /ld_pruning.wdl
     testParameterFiles:
        - /ld_pruning.json
