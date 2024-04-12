@@ -134,6 +134,7 @@ task maf_by_pop {
         /plink2 ~{prefix} ~{vcf} \
             --keep ~{samples} \
             --maf ~{min_maf} \
+            --set-missing-var-ids @:#:\$r:\$a \
             --rm-dup exclude-all \
             --write-snplist --out maf_filter
     >>>
