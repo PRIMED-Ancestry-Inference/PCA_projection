@@ -156,6 +156,8 @@ task combine_variants {
         Array[File] variants
     }
 
+    Int disk_size = ceil(1.5*(size(variants, "GB"))) + 5
+
     command <<<
         Rscript -e "\
         files <- readLines('~{write_lines(variants)}'); \
@@ -170,5 +172,7 @@ task combine_variants {
 
     runtime {
         docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
+            disks: "local-disk " + disk_size + " SSD"
+            memory: disk_size + " GB"
     }
 }
