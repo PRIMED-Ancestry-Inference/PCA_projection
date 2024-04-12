@@ -56,7 +56,7 @@ projection_log | log from running plink2 --score
 
 
 
-## LD pruning
+## LD_pruning
 
 This workflow prunes variants for linkage equilibrium.
 
@@ -78,3 +78,30 @@ Outputs:
 output | description
 --- | ---
 pruned_vcf | Array of pruned VCF files
+
+
+
+## select_variants_by_pop_maf
+
+This workflow selects all variants with MAF > a minimum threshold in any population (i.e. the union of filtering by MAF in each population separately). Samples to select for each population are identified by reading the population_descriptor and sample tables from the specified workspace.
+
+The output of this workflow is a text file with variant IDs, taken from the ID column of the VCF file(s). Any missing values in the ID column are replaced with chr:pos:ref:alt. Duplicate variant IDs are excluded.
+
+
+Inputs:
+
+input | description
+--- | ---
+vcf | Array of VCF files (possibly split by chromosome)
+min_maf | minimum MAF for variants to select
+population_descriptor | the descriptor to use for identifying populations
+population_labels | Array of labels for each population. If this input is not supplied, the workflow will use all unique labels for the population descriptor.
+workspace_name | name of the workspace with a population_descriptor data table (e.g. "PRIMED_1000G")
+workspace_namespace | namespace of the workspace (e.g. "primed-data-cc-1")
+
+
+Outputs:
+
+output | description
+--- | ---
+maf_filtered_variants | Text file with variants that passed the MAF filter in any population.

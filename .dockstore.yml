@@ -19,3 +19,9 @@ workflows:
     primaryDescriptorPath: /ld_pruning.wdl
     testParameterFiles:
        - /ld_pruning.json
+  - name: select_variants_by_pop_maf
+    subclass: WDL
+    primaryDescriptorPath: /maf_by_pop.wdl
+    testParameterFiles:
+       - /maf_by_pop.json
+       

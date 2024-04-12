@@ -1,0 +1,11 @@
+{
+    "select_variants_by_pop_maf.vcf": [
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf_maf001/ALL.chr21.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.bi_maf001.vcf.bgz",
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf_maf001/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.bi_maf001.vcf.bgz"
+    ],
+    "select_variants_by_pop_maf.min_maf": 0.01,
+    "select_variants_by_pop_maf.population_descriptor": "superpopulation",
+    "select_variants_by_pop_maf.population_labels": ["AFR", "AMR", "EAS", "EUR", "SAS"],
+    "select_variants_by_pop_maf.workspace_name": "PRIMED_example_genotype_1000G",
+    "select_variants_by_pop_maf.workspace_namespace": "primed-cc"
+}
