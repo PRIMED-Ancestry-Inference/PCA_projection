@@ -144,9 +144,9 @@ task maf_by_pop {
     }
 
     runtime {
-            docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
-            disks: "local-disk " + disk_size + " SSD"
-            memory: mem_gb + " GB"
+        docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
+        disks: "local-disk " + disk_size + " SSD"
+        memory: mem_gb + " GB"
     }
 }
 
@@ -172,7 +172,7 @@ task combine_variants {
 
     runtime {
         docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
-            disks: "local-disk " + disk_size + " SSD"
-            memory: disk_size + " GB"
+        disks: "local-disk " + disk_size + " SSD"
+        memory: disk_size + " GB"
     }
 }
