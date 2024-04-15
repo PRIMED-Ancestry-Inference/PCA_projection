@@ -13,7 +13,7 @@ task make_pca_loadings {
 	String basename = basename(pgen, ".pgen")
 
 	command <<<
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
+		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--freq counts \
 			--pca allele-wts \
 			--out ~{basename}_snp_loadings"
@@ -56,7 +56,7 @@ task run_pca_projected {
 
 	command <<<
 		#https://www.cog-genomics.org/plink/2.0/score#pca_project
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
+		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--read-freq ~{freq_file} \
 			--score ~{loadings} ~{id_col} ~{allele_col} header-read no-mean-imputation variance-standardize \
 			--score-col-nums ~{pc_col_first}-~{pc_col_last} \

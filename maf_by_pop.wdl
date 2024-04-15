@@ -134,7 +134,7 @@ task maf_by_pop {
     String prefix = if (sub(filename, ".bcf", "") != filename) then "--bcf" else "--vcf"
 
     command <<<
-        /plink2 ~{prefix} ~{vcf} \
+        plink2 ~{prefix} ~{vcf} \
             --keep ~{samples} \
             --maf ~{min_maf} \
             --set-missing-var-ids @:#:\$r:\$a \

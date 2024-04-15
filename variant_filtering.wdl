@@ -21,7 +21,7 @@ task subsetVariants {
 		#get a list of variant names in common between the two, save to extract.txt
 		if [ -f ~{variant_file} ]; then cut -f ~{variant_id_col} ~{variant_file} > extract.txt; fi
 		#subset file with --extract extract.txt
-		/plink2 ~{prefix} ~{vcf} ~{maf} \
+		plink2 ~{prefix} ~{vcf} ~{maf} \
 			~{true="--extract extract.txt" false="" defined(variant_file)} \
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
@@ -62,7 +62,7 @@ task pruneVars {
 	String basename = basename(pgen, ".pgen")
 	
 	command <<<
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
+		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--rm-dup force-first --set-missing-var-ids @:#:\$r:\$a \
 			--indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
 			--out ~{basename}_indep"
@@ -70,7 +70,7 @@ task pruneVars {
 		${command}
 
 		# extract pruned variants
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
+		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--extract ~{basename}_indep.prune.in \
 			--make-pgen \
 			--out ~{basename}_pruned"

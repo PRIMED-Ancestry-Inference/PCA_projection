@@ -15,7 +15,7 @@ task removeRelateds {
 
 	command <<<
 		#identify individuals who are less related than kinship threshold
-		command="/plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
+		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 		--king-cutoff ~{max_kinship_coefficient} \
 		--make-pgen \
 		--out ~{basename}_unrel"
