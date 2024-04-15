@@ -26,7 +26,7 @@ task mergeFiles {
 	}
 
 	runtime {
-		docker: "emosyne/plink2@sha256:195614c953e81da763661be20ef149be7d16b348cb68c5d54114e261aede1c92"
+		docker: "quay.io/biocontainers/plink2:2.00a5.10--h4ac6f70_0"
 		disks: "local-disk " + disk_size + " SSD"
 		memory: mem_gb + " GB"
 	}
