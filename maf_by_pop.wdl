@@ -8,6 +8,7 @@ workflow select_variants_by_pop_maf {
         Array[String]? population_labels
         String workspace_name
         String workspace_namespace
+        Boolean? snps_only
     }
 
     if (!defined(population_labels)) {
@@ -33,7 +34,8 @@ workflow select_variants_by_pop_maf {
                 input:
                     vcf = file,
                     samples = samples_in_pop.samples,
-                    min_maf = min_maf
+                    min_maf = min_maf,
+                    snps_only = snps_only
             }
         }
     }
@@ -123,6 +125,7 @@ task maf_by_pop {
         File vcf
         File samples
         Float min_maf
+        Boolean snps_only = false
         Int mem_gb = 8
     }
 
@@ -136,6 +139,7 @@ task maf_by_pop {
             --maf ~{min_maf} \
             --set-missing-var-ids @:#:\$r:\$a \
             --rm-dup exclude-all \
+            ~{true="--snps-only 'just-acgt'" false="" snps_only} \
             --write-snplist --out maf_filter
     >>>
 
