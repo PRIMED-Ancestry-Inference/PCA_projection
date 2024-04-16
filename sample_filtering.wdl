@@ -7,7 +7,7 @@ task removeRelateds {
 		File pvar
 		File psam
 		Float max_kinship_coefficient = 0.0442
-		Int mem_gb = 8
+		Int mem_gb = 16
 	}
 
 	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB"))) + 10
