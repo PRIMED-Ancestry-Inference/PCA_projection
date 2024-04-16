@@ -10,7 +10,7 @@ task removeRelateds {
 		Int mem_gb = 8
 	}
 
-	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
+	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB"))) + 10
 	String basename = basename(pgen, ".pgen")
 
 	command <<<
