@@ -14,6 +14,7 @@ task make_pca_loadings {
 
 	command <<<
 		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
+			--maf 0.000001 \
 			--freq counts \
 			--pca allele-wts \
 			--out ~{basename}_snp_loadings"
