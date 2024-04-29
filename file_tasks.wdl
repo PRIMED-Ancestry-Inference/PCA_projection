@@ -19,7 +19,7 @@ task mergeFiles {
 			--out tmp
 		plink2 --pfile tmp \
 			--output-chr chrM \
- 			--set-all-var-ids @:#:\$r:\$a \
+			--set-all-var-ids @:#:\$r:\$a \
 			--make-pgen --out merged \
 			~{true="--rm-dup exclude-all" false="" rm_dup}
 	>>>
