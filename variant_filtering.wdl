@@ -25,7 +25,8 @@ task subsetVariants {
 			~{true="--extract extract.txt" false="" defined(variant_file)} \
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
-			--set-missing-var-ids @:#:\$r:\$a \
+			--output-chr chrM \
+			--set-all-var-ids @:#:\$r:\$a \
 			--make-pgen --out ~{basename}_subset
 		awk '/^[^#]/ {print $3}' ~{basename}_subset.pvar > selected_variants.txt
 	>>>
@@ -63,7 +64,9 @@ task pruneVars {
 	
 	command <<<
 		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
-			--rm-dup force-first --set-missing-var-ids @:#:\$r:\$a \
+			--rm-dup force-first \
+			--output-chr chrM \
+			--set-all-var-ids @:#:\$r:\$a \
 			--indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
 			--out ~{basename}_indep"
 		printf "${command}\n"
@@ -72,6 +75,8 @@ task pruneVars {
 		# extract pruned variants
 		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
 			--extract ~{basename}_indep.prune.in \
+			--output-chr chrM \
+			--set-all-var-ids @:#:\$r:\$a \
 			--make-pgen \
 			--out ~{basename}_pruned"
 		printf "${command}\n"

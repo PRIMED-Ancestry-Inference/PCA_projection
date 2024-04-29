@@ -17,6 +17,8 @@ task make_pca_loadings {
 			--maf 0.000001 \
 			--freq counts \
 			--pca allele-wts \
+			--output-chr chrM \
+			--set-all-var-ids @:#:\$r:\$a \
 			--out ~{basename}_snp_loadings"
 		printf "${command}\n"
 		${command}
