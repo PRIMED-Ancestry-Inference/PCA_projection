@@ -137,7 +137,8 @@ task maf_by_pop {
         plink2 ~{prefix} ~{vcf} \
             --keep ~{samples} \
             --maf ~{min_maf} \
-            --set-missing-var-ids @:#:\$r:\$a \
+            --output-chr chrM \
+            --set-all-var-ids @:#:\$r:\$a \
             --rm-dup exclude-all \
             ~{true="--snps-only 'just-acgt'" false="" snps_only} \
             --write-snplist --out maf_filter

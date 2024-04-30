@@ -14,8 +14,13 @@ task mergeFiles {
 	command <<<
 		# merge plink files
 		cat ~{write_lines(pgen)} | sed 's/.pgen//' > pfile.txt
-		plink2 --pmerge-list pfile.txt --merge-max-allele-ct 2 --out tmp
-		plink2 --pfile tmp --make-pgen --out merged \
+		plink2 --pmerge-list pfile.txt \
+			--merge-max-allele-ct 2 \
+			--out tmp
+		plink2 --pfile tmp \
+			--output-chr chrM \
+			--set-all-var-ids @:#:\$r:\$a \
+			--make-pgen --out merged \
 			~{true="--rm-dup exclude-all" false="" rm_dup}
 	>>>
 
