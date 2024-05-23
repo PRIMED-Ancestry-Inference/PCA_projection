@@ -2,9 +2,10 @@ library(readr)
 library(ggplot2)
 library(GGally)
 library(tidyr)
+library(dplyr)
 library(argparser)
 
-# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --n_pairs 3
+# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3
 
 # Get parameters 
 argp <- arg_parser("PCA plots")
@@ -12,13 +13,13 @@ argp <- add_argument(parser = argp,
                      arg = "--data_file",
                      type = "character", 
                      nargs = 1, 
-                     help="path to data file")
+                     help="Path to data file")
 
 argp <- add_argument(parser = argp, 
-                     arg = "--group",
+                     arg = "--groups_file",
                      type = "character", 
                      nargs = 1, 
-                     help="Variable name for grouping results")
+                     help="Two-column tab-delimited file with subject ID and group label")
 
 argp <- add_argument(parser = argp, 
                      arg = "--n_pairs",
@@ -28,30 +29,33 @@ argp <- add_argument(parser = argp,
 
 argv <- parse_args(argp)
 data_file <- argv$data_file
-group <- argv$group
+groups_file <- argv$groups_file
 n_pairs <- argv$n_pairs
 
 # Read data file 
 dat <- as.data.frame(read_tsv(data_file))
 colnames(dat)[colnames(dat)=="#IID"] <- "IID"
-rownames(dat) <- dat[,1]
-dat <- dat[,-(1:3)]
+# rownames(dat) <- dat[,1]
+# dat <- dat[,-(1:3)]
 pc_columns <- grep("^PC", names(dat), value = TRUE)
 num_pcs <- length(pc_columns)
 
-print(num_pcs)
-
 # Color by group 
-if(!is.na(argv$group)) {
-  # join to table by sample id to find groups 
-  # stopifnot group %in% colnames(table_w_groups)
-  # dat <- left_join(dat, table_w_groups, by = "IID")
+if(!is.na(groups_file)) {
+  groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
+  colnames(groups_dat)[1] <- "IID"
+  group <- colnames(groups_dat)[2]
+  dat <- merge(dat, groups_dat, by = "IID", all.x = TRUE)
 } else {
   group <- "group"
   dat$group <- "NA"
 }
 
-# pca <- pivot_longer(dat, cols = c(starts_with("PC")), names_to = "pc", values_to = "value")
+# Filter data for columns relevant for PC plots 
+dat <- dat %>% select(
+  starts_with("PC"), 
+  group
+)
 
 # PC 1 and PC 2
 p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
