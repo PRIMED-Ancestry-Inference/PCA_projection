@@ -41,6 +41,6 @@ task run_pca_plots {
     }
 
     runtime{
-        docker: "uwgac/primed-file-checks:0.5.0"
+        docker: "primed_ancestry_inference/pca_projection:0.5.0"
     }
 }
