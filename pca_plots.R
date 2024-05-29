@@ -61,15 +61,15 @@ dat <- dat %>% select(
 p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
   geom_point(alpha=0.5) +
   theme(legend.position="none")
-ggsave("test_data/out_file_pc12.pdf", plot = p, width = 7, height = 6)
+ggsave("out_file_pc12.pdf", plot = p, width = 7, height = 6)
 
 # Pairwise PCs from inputs
 npr <- min(num_pcs, n_pairs)
 p <- ggpairs(dat, mapping = aes(color = .data[[group]], alpha = 0.5), columns = 1:npr)
-ggsave("test_data/out_file_pairs.pdf", plot = p, width=8, height=8)
+ggsave("out_file_pairs.pdf", plot = p, width=8, height=8)
 
 # Parcoord Plots
 p <- ggparcoord(dat, columns = 1:num_pcs, groupColumn = group, alphaLines = 0.5, scale = "uniminmax") +
   guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
   xlab("PC") + ylab("")
-ggsave("test_data/out_file_parcoord.pdf", plot = p, width = 7, height = 6)
+ggsave("out_file_parcoord.pdf", plot = p, width = 7, height = 6)
