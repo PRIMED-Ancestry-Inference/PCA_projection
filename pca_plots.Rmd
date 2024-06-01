@@ -1,0 +1,80 @@
+---
+title: "PCA Plots"
+author: "Amy Watt"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+params: 
+  data_file: ""
+  groups_file: ""
+  n_pairs: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r params}
+data_file <- params$data_file
+groups_file <- params$groups_file
+n_pairs <- params$n_pairs
+```
+
+
+```{r read data files}
+# Read data file 
+dat <- as.data.frame(read_tsv(data_file))
+colnames(dat)[colnames(dat)=="#IID"] <- "IID"
+# rownames(dat) <- dat[,1]
+# dat <- dat[,-(1:3)]
+pc_columns <- grep("^PC", names(dat), value = TRUE)
+num_pcs <- length(pc_columns)
+
+# Color by group 
+if(!is.na(groups_file)) {
+  groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
+  colnames(groups_dat)[1] <- "IID"
+  group <- colnames(groups_dat)[2]
+  dat <- merge(dat, groups_dat, by = "IID", all.x = TRUE)
+} else {
+  group <- "group"
+  dat$group <- "NA"
+}
+
+# Filter data for columns relevant for PC plots 
+dat <- dat %>% select(
+  starts_with("PC"), 
+  group
+)
+```
+
+
+```{r}
+# PC 1 and PC 2
+p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
+  geom_point(alpha=0.5) +
+  theme(legend.position="none")
+ggsave("out_file_pc12.png", plot = p, width = 7, height = 6)
+
+print(p)
+```
+
+
+```{r}
+# Pairwise PCs from inputs
+npr <- min(num_pcs, n_pairs)
+p <- ggpairs(dat, mapping = aes(color = .data[[group]], alpha = 0.5), columns = 1:npr)
+ggsave("out_file_pairs.png", plot = p, width=8, height=8)
+
+print(p)
+```
+
+
+```{r}
+# Parcoord Plots
+p <- ggparcoord(dat, columns = 1:num_pcs, groupColumn = group, alphaLines = 0.5, scale = "uniminmax") +
+  guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
+  xlab("PC") + ylab("")
+ggsave("out_file_parcoord.png", plot = p, width = 7, height = 6)
+
+print(p)
+```

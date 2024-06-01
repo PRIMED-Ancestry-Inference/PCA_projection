@@ -17,6 +17,7 @@ workflow pca_plots {
         File pca_plots_pc12 = run_pca_plots.pca_plots_pc12
         File pca_plots_pairs = run_pca_plots.pca_plots_pairs
         File pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
+        File pca_plots = run_pca_plots.pca_plots
     }
 }
 
@@ -35,9 +36,10 @@ task run_pca_plots {
     >>>
 
     output{
-        File pca_plots_pc12 = "out_file_pc12.pdf"
-        File pca_plots_pairs = "out_file_pairs.pdf"
-        File pca_plots_parcoord = "out_file_parcoord.pdf"
+        File pca_plots_pc12 = "out_file_pc12.png"
+        File pca_plots_pairs = "out_file_pairs.png"
+        File pca_plots_parcoord = "out_file_parcoord.png"
+        File pca_plots = "pca_plots.html" 
     }
 
     runtime{

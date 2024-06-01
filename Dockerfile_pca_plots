@@ -1,7 +1,7 @@
-FROM rocker/tidyverse:4.4.0
+FROM r-base:4.4.0
 
 RUN Rscript -e 'remotes::install_cran("argparser")'
 RUN Rscript -e 'remotes::install_cran("GGally")'
-
+RUN Rscript -e 'remotes::install_cran("tidyverse")'
 RUN cd /usr/local && \
     git clone -b pca_plots https://github.com/PRIMED-Ancestry-Inference/PCA_projection.git

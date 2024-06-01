@@ -5,7 +5,7 @@ library(tidyr)
 library(dplyr)
 library(argparser)
 
-# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3
+# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
 
 # Get parameters 
 argp <- arg_parser("PCA plots")
@@ -27,49 +27,21 @@ argp <- add_argument(parser = argp,
                      nargs = 1, 
                      help="Number of PCs to use for pairwise plots")
 
+argp <- add_argument(parser = argp, 
+                     arg = "--path_to_rmd", 
+                     type = "character", 
+                     nargs = 1,
+                     help="rmd filepath")
+
 argv <- parse_args(argp)
 data_file <- argv$data_file
 groups_file <- argv$groups_file
 n_pairs <- argv$n_pairs
+path_to_rmd <- argv$path_to_rmd
 
-# Read data file 
-dat <- as.data.frame(read_tsv(data_file))
-colnames(dat)[colnames(dat)=="#IID"] <- "IID"
-# rownames(dat) <- dat[,1]
-# dat <- dat[,-(1:3)]
-pc_columns <- grep("^PC", names(dat), value = TRUE)
-num_pcs <- length(pc_columns)
+input <- paste0(path_to_rmd, "pca_plots.Rmd")
 
-# Color by group 
-if(!is.na(groups_file)) {
-  groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
-  colnames(groups_dat)[1] <- "IID"
-  group <- colnames(groups_dat)[2]
-  dat <- merge(dat, groups_dat, by = "IID", all.x = TRUE)
-} else {
-  group <- "group"
-  dat$group <- "NA"
-}
+parameters <- list(data_file=data_file, groups_file=groups_file, n_pairs=n_pairs)
 
-# Filter data for columns relevant for PC plots 
-dat <- dat %>% select(
-  starts_with("PC"), 
-  group
-)
-
-# PC 1 and PC 2
-p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
-  geom_point(alpha=0.5) +
-  theme(legend.position="none")
-ggsave("out_file_pc12.pdf", plot = p, width = 7, height = 6)
-
-# Pairwise PCs from inputs
-npr <- min(num_pcs, n_pairs)
-p <- ggpairs(dat, mapping = aes(color = .data[[group]], alpha = 0.5), columns = 1:npr)
-ggsave("out_file_pairs.pdf", plot = p, width=8, height=8)
-
-# Parcoord Plots
-p <- ggparcoord(dat, columns = 1:num_pcs, groupColumn = group, alphaLines = 0.5, scale = "uniminmax") +
-  guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
-  xlab("PC") + ylab("")
-ggsave("out_file_parcoord.pdf", plot = p, width = 7, height = 6)
+file.copy(file.path(path_to_rmd, "pca_plots.Rmd"), "pca_plots.Rmd")
+rmarkdown::render(input = input, params = parameters, quiet=TRUE)
