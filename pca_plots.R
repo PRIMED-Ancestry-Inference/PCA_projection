@@ -39,7 +39,8 @@ groups_file <- argv$groups_file
 n_pairs <- argv$n_pairs
 path_to_rmd <- argv$path_to_rmd
 
-input <- paste0(path_to_rmd, "pca_plots.Rmd")
+# input <- paste0(path_to_rmd, "pca_plots.Rmd")
+input <- "pca_plots.Rmd"
 
 parameters <- list(data_file=data_file, groups_file=groups_file, n_pairs=n_pairs)
 
