@@ -32,7 +32,8 @@ task run_pca_plots {
     Rscript /usr/local/PCA_projection/pca_plots.R \
     --data_file ~{data_file} \ 
     --groups_file ~{groups_file} \
-    --n_pairs ~{n_pairs}
+    --n_pairs ~{n_pairs} \ 
+    --path_to_rmd /usr/local/PCA_projection/
     >>>
 
     output{
