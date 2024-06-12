@@ -1,6 +1,7 @@
 library(argparser)
 
 # Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
+# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
 
 # Get parameters 
 argp <- arg_parser("PCA plots")

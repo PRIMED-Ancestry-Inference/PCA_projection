@@ -53,7 +53,7 @@ dat <- dat %>% select(
 ```
 
 
-```{r}
+```{r, fig.dim=c(7,5)}
 # PC 1 and PC 2
 p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
   geom_point(alpha=0.5) +
@@ -64,22 +64,32 @@ print(p)
 ```
 
 
-```{r}
+```{r, fig.dim=c(8,8)}
 # Pairwise PCs from inputs
 npr <- min(num_pcs, n_pairs)
-p <- ggpairs(dat, mapping = aes(color = .data[[group]], alpha = 0.5), columns = 1:npr)
-ggsave("out_file_pairs.png", plot = p, width=8, height=8)
 
-print(p)
+if(npr %in% c(1,2,3,4,5)) {
+  p <- ggpairs(dat, mapping = aes(color = .data[[group]], alpha = 0.5), columns = 1:npr)
+  ggsave("out_file_pairs.png", plot = p, width=8, height=8)
+  
+  print(p)
+} else if(npr > 5) {
+  p1 <- ggpairs(dat, mapping = aes(color = .data[[group]], alpha = 0.5), columns = 1:5)
+  p2 <- ggpairs(dat, mapping = aes(color = .data[[group]], alpha = 0.5), columns = 6:npr)
+  ggsave("out_file_pairs.png", plot = p1, width=8, height=8)
+  
+  print(p1)
+  print(p2)
+}
 ```
 
 
-```{r}
+```{r, fig.dim=c(10,5)}
 # Parcoord Plots
 p <- ggparcoord(dat, columns = 1:num_pcs, groupColumn = group, alphaLines = 0.5, scale = "uniminmax") +
   guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
   xlab("PC") + ylab("")
-ggsave("out_file_parcoord.png", plot = p, width = 7, height = 6)
+ggsave("out_file_parcoord.png", plot = p, width = 10, height = 5)
 
 print(p)
 ```
