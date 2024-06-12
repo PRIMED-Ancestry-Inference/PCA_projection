@@ -11,6 +11,11 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(readr)
+library(ggplot2)
+library(GGally)
+library(tidyr)
+library(dplyr)
 ```
 
 ```{r params}
