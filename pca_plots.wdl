@@ -3,7 +3,7 @@ version 1.0
 workflow pca_plots {
     input{
         File data_file
-        File? groups_file
+        File groups_file
         Int n_pairs
     }
 
