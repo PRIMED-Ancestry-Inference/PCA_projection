@@ -35,7 +35,7 @@ task run_pca_plots {
     --n_pairs ~{n_pairs} \
     --path_to_rmd /usr/local/PCA_projection/; \
     else Rscript pca_plots.R \
-     --data_file ~{data_file} \
+    --data_file ~{data_file} \
     --n_pairs ~{n_pairs} \
     --path_to_rmd /usr/local/PCA_projection/; \
     fi
