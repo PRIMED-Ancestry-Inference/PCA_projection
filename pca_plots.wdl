@@ -3,8 +3,8 @@ version 1.0
 workflow pca_plots {
     input{
         File data_file
-        File groups_file
-        Int n_pairs
+        File? groups_file
+        Int? n_pairs
     }
 
     call run_pca_plots {
@@ -25,7 +25,7 @@ task run_pca_plots {
     input{
         File data_file
         File groups_file 
-        Int n_pairs
+        Int n_pairs = 10
     }
 
     command <<<
