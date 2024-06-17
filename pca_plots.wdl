@@ -24,7 +24,7 @@ workflow pca_plots {
 task run_pca_plots {
     input{
         File data_file
-        File groups_file
+        File? groups_file
         Int n_pairs = 10
     }
 
