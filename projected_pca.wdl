@@ -60,10 +60,11 @@ workflow projected_PCA {
 				pc_col_first = identifyColumns.pc_col_first,
 				pc_col_last = identifyColumns.pc_col_last
 		}
-		
+
 		call pca_plots.run_pca_plots {
 			input:
 				data_file = run_pca_projected.projection_file
+		}
 	}
 
 	output {
