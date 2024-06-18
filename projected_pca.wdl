@@ -73,10 +73,10 @@ workflow projected_PCA {
 		File? projection_file = run_pca_projected.projection_file
 		File? projection_log = run_pca_projected.projection_log
 		Float overlap = checkOverlap.overlap
-		File pca_plots_pc12 = run_pca_plots.pca_plots_pc12
-        Array[File] pca_plots_pairs = run_pca_plots.pca_plots_pairs
-        File pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
-        File pca_plots = run_pca_plots.pca_plots
+		File? pca_plots_pc12 = run_pca_plots.pca_plots_pc12
+        Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
+        File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
+        File? pca_plots = run_pca_plots.pca_plots
 	}
 
 	meta {
