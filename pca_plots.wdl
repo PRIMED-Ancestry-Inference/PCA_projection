@@ -29,7 +29,8 @@ task run_pca_plots {
     }
 
     command <<<
-    if [ -f ~{groups_file} ]; then
+    if [ -f ~{groups_file} ]
+    then
         Rscript /usr/local/PCA_projection/pca_plots.R \
             --data_file ~{data_file} \
             --groups_file ~{groups_file} \
