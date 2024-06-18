@@ -29,7 +29,7 @@ task run_pca_plots {
     }
 
     command <<<
-    if [ -f "~{groups_file} ]; then Rscript pca_plots.R \
+    if [ -f ~{groups_file} ]; then Rscript pca_plots.R \
     --data_file ~{data_file} \
     --groups_file ~{groups_file} \
     --n_pairs ~{n_pairs} \
