@@ -3,6 +3,7 @@ version 1.0
 import "variant_filtering.wdl" as variant_tasks
 import "file_tasks.wdl" as file_tasks
 import "pca_tasks.wdl" as pca_tasks
+import "pca_plots.wdl" as pca_plots
 
 workflow projected_PCA {
 	input {
@@ -61,10 +62,19 @@ workflow projected_PCA {
 		}
 	}
 
+	call pca_plots.run_pca_plots {
+		input: 
+			data_file = run_pca_projected.projection_file
+	}
+
 	output {
 		File? projection_file = run_pca_projected.projection_file
 		File? projection_log = run_pca_projected.projection_log
 		Float overlap = checkOverlap.overlap
+		File pca_plots_pc12 = run_pca_plots.pca_plots_pc12
+        Array[File] pca_plots_pairs = run_pca_plots.pca_plots_pairs
+        File pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
+        File pca_plots = run_pca_plots.pca_plots
 	}
 
 	meta {
