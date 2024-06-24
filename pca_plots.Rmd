@@ -25,7 +25,9 @@ n_pairs <- params$n_pairs
 ```
 
 ```{r}
-colors <- c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99','#b15928')
+paired <- c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99','#b15928')
+
+dark2 <- c('#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#666666')
 ```
 
 ```{r read data files}
@@ -42,12 +44,19 @@ if(!is.na(groups_file)) {
   group <- colnames(groups_dat)[2]
   dat <- merge(dat, groups_dat, by = "IID", all.x = TRUE)
   
-  palette <- colors[1:length(unique(groups_dat$group))]
+  n_groups <- length(unique(groups_dat$group))
+  
+  if(n_groups <= 8) {
+    palette <- dark2[1:n_groups]
+  } else if(n_groups <= 12) {
+    palette <- paired[1:ln_groups]
+  } 
+  
 } else {
   group <- "group"
   dat$group <- "NA"
   
-  palette <- colors[1]
+  palette <- dark2[1]
 }
 
 # Filter data for columns relevant for PC plots 
@@ -59,10 +68,18 @@ dat <- dat %>% select(
 
 
 ```{r, fig.dim=c(7,5)}
+print(head(dat))
+print(n_groups)
 # PC 1 and PC 2
-p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
-  geom_point(alpha=0.5) +
-  scale_colour_manual(values = palette) 
+if(n_groups <= 12) {
+  p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
+    geom_point(alpha=0.5) +
+    scale_colour_manual(values = palette)
+} else {
+  p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
+    geom_point(alpha=0.5)
+}
+
 ggsave("out_file_pc12.png", plot = p, width = 7, height = 6)
 
 print(p)
@@ -75,29 +92,69 @@ n_plots <- ceiling(npr/5)
 
 for(i in 1:n_plots) {
   columns <- (5*(i-1) + 1):min(npr, 5*i)
+  
+  if(n_groups <= 12) {
   p <- ggpairs(dat, 
                mapping = aes(color = .data[[group]], alpha = 0.5), 
                columns = columns) + 
     scale_color_manual(values = palette)
+  } else {
+    p <- ggpairs(dat, 
+                 mapping = aes(color = .data[[group]], alpha = 0.5), 
+                 columns = columns) 
+  }
+  
   print(p)
   file_name <- paste0("out_file_pairs_", i, ".png")
   ggsave(file_name, plot = p, width=8, height=8)
 }
 ```
 
-
 ```{r, fig.dim=c(10,5)}
 # Parcoord Plots
-p <- ggparcoord(dat, 
+if(n_groups <= 12) {
+  p <- ggparcoord(dat,
+                  columns = 1:num_pcs, 
+                  groupColumn = group, 
+                  alphaLines = 0.5, 
+                  scale = "uniminmax") +
+    scale_color_manual(values = palette) + 
+    guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
+    xlab("PC") +
+    ylab("")
+} else {
+  p <- ggparcoord(dat,
                 columns = 1:num_pcs, 
                 groupColumn = group, 
                 alphaLines = 0.5, 
                 scale = "uniminmax") +
-  scale_color_manual(values = palette) + 
   guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
-  xlab("PC") + 
+  xlab("PC") +
   ylab("")
+}
+
 ggsave("out_file_parcoord.png", plot = p, width = 10, height = 5)
 
 print(p)
 ```
+
+
+
+
+
+
+```{r, include=FALSE}
+set.seed(4)
+
+temp <- read_tsv("test_data/pca_plots_test_data.sscore")
+
+temp <- tibble(
+  subject_id = temp$`#IID`,
+  # group = sample(x = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"), size = length(temp$`#IID`), replace = TRUE)
+  # group = sample(x = c("A"), size = length(temp$`#IID`), replace = TRUE)
+  group = sample(x = c("A", "B", "C", "D"), size = length(temp$`#IID`), replace = TRUE)
+)
+
+write_tsv(temp, "test_data/groups_file_test.tsv")
+```
+
