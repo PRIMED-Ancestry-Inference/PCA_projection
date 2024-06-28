@@ -4,6 +4,7 @@ import "variant_filtering.wdl" as variant_tasks
 import "sample_filtering.wdl" as sample_tasks
 import "file_tasks.wdl" as file_tasks
 import "pca_tasks.wdl" as pca_tasks
+import "pca_plots.wdl" as pca_plots
 
 workflow create_pca_projection {
 	input{ 
@@ -96,12 +97,21 @@ workflow create_pca_projection {
 			pc_col_last = 15
 	}
 
+	call pca_plots.run_pca_plots {
+		input: 
+			data_file = run_pca_projected.projection_file
+	}
+
 	output {
 		File var_freq_counts = make_pca_loadings.var_freq_counts
 		File snp_loadings =  make_pca_loadings.snp_loadings
 		File loadings_log =  make_pca_loadings.projection_log
 		File pca_projection = run_pca_projected.projection_file
 		File projection_log = run_pca_projected.projection_log
+		File? pca_plots_pc12 = run_pca_plots.pca_plots_pc12
+        Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
+        File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
+        File? pca_plots = run_pca_plots.pca_plots
 	}
 
 	meta {
