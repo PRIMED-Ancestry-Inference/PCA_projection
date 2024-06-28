@@ -4,12 +4,14 @@ workflow pca_plots {
     input{
         File data_file
         File? groups_file
+        File? colormap
         Int? n_pairs
     }
 
     call run_pca_plots {
         input: data_file = data_file, 
                groups_file = groups_file, 
+               colormap = colormap,
                n_pairs = n_pairs
     }
 
@@ -25,6 +27,7 @@ task run_pca_plots {
     input{
         File data_file
         File? groups_file
+        File? colormap
         Int n_pairs = 10
     }
 
@@ -32,6 +35,7 @@ task run_pca_plots {
     Rscript /usr/local/PCA_projection/pca_plots.R \
         --data_file ~{data_file} \
         $(if [ -f "~{groups_file}" ]; then echo "--groups_file ~{groups_file}"; fi) \
+        $(if [ -f "~{colormap}" ]; then echo "--colormap ~{colormap}"; fi) \
         --n_pairs ~{n_pairs} \
         --path_to_rmd /usr/local/PCA_projection/
     >>>
