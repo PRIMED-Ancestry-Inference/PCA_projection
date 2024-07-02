@@ -20,6 +20,12 @@ argp <- add_argument(parser = argp,
                      help="Two-column tab-delimited file with subject ID and group label")
 
 argp <- add_argument(parser = argp, 
+                     arg = "--colormap",
+                     type = "character", 
+                     nargs = 1, 
+                     help="Two-column tab-delimited file with group and color (one row per group)")
+
+argp <- add_argument(parser = argp, 
                      arg = "--n_pairs",
                      type = "integer", 
                      nargs = 1, 
@@ -34,6 +40,7 @@ argp <- add_argument(parser = argp,
 argv <- parse_args(argp)
 data_file <- argv$data_file
 groups_file <- argv$groups_file
+colormap <- argv$colormap
 n_pairs <- argv$n_pairs
 path_to_rmd <- argv$path_to_rmd
 

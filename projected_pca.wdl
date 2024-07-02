@@ -9,6 +9,8 @@ workflow projected_PCA {
 	input {
 		File ref_loadings
 		File ref_freqs
+		File? ref_pcs
+		File? ref_groups
 		Array[File] vcf
 		Float min_overlap = 0.95
 	}
@@ -65,6 +67,23 @@ workflow projected_PCA {
 			call pca_plots.run_pca_plots {
 				input: 
 					data_file = run_pca_projected.projection_file
+			}
+		}
+
+		# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
+		if (ref_pcs != "NULL") {
+			call concatenateFiles {
+				input: 
+					ref_pcs = ref_pcs,
+					ref_groups = ref_groups,
+					projection_file = run_pca_projected.projection_file
+			}
+
+			call pca_plots.run_pca_plots {
+				input: 
+					data_file = concatenateFiles.merged_file,
+					groups_file = ref_groups,
+					colormap = concatenateFiles.colormap
 			}
 		}
 	}
@@ -147,4 +166,30 @@ task checkOverlap {
 	runtime {
 		docker: "us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian"
 	}
+}
+
+
+task concatenateFiles {
+	input {
+		File ref_pcs
+		File? ref_groups
+		File projection_file
+    }
+
+	command <<<
+	cat ~{ref_pcs} ~{projection_file} > merged_file 
+	Rscript /usr/local/PCA_projection/colormap.R \
+		--ref_pcs ~{ref_pcs} \
+		$(if [ -n "~{ref_groups}" ]; then echo "--groups_file ~{ref_groups}"; fi) \
+		--projection_file ~{projection_file}
+	>>>
+
+	output {
+		File merged_file = "merged_file"
+		File colormap = "colormap.tsv"
+	}
+
+	runtime{
+        docker: "uwgac/pca_projection:0.1.0"
+    }
 }

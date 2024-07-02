@@ -21,6 +21,7 @@ library(dplyr)
 ```{r params}
 data_file <- params$data_file
 groups_file <- params$groups_file
+colormap <- params$colormap
 n_pairs <- params$n_pairs
 ```
 
@@ -37,6 +38,9 @@ colnames(dat)[colnames(dat)=="#IID"] <- "IID"
 pc_columns <- grep("^PC", names(dat), value = TRUE)
 num_pcs <- length(pc_columns)
 
+# Read colormap file 
+colormap <- as.data.frame(read_tsv(colormap))
+
 # Color by group 
 if(!is.na(groups_file)) {
   groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
@@ -49,7 +53,7 @@ if(!is.na(groups_file)) {
   if(n_groups <= 8) {
     palette <- dark2[1:n_groups]
   } else if(n_groups <= 12) {
-    palette <- paired[1:ln_groups]
+    palette <- paired[1:n_groups]
   } 
   
 } else {
@@ -143,18 +147,42 @@ print(p)
 
 
 
-```{r, include=FALSE}
+```{r generating test data, include=FALSE}
 set.seed(4)
-
-temp <- read_tsv("test_data/pca_plots_test_data.sscore")
-
-temp <- tibble(
-  subject_id = temp$`#IID`,
-  # group = sample(x = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"), size = length(temp$`#IID`), replace = TRUE)
-  # group = sample(x = c("A"), size = length(temp$`#IID`), replace = TRUE)
-  group = sample(x = c("A", "B", "C", "D"), size = length(temp$`#IID`), replace = TRUE)
-)
-
-write_tsv(temp, "test_data/groups_file_test.tsv")
+# temp <- read_tsv("test_data/pca_plots_test_data.sscore")
+# 
+# groups_file_test <- tibble(
+#   subject_id = temp$`#IID`,
+#   # group = sample(x = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"), size = length(temp$`#IID`), replace = TRUE)
+#   # group = sample(x = c("A"), size = length(temp$`#IID`), replace = TRUE)
+#   group = sample(x = c("A", "B", "C", "D"), size = length(temp$`#IID`), replace = TRUE)
+# )
+# 
+# write_tsv(groups_file_test, "test_data/groups_file_test.tsv")
+# 
+# ref_pcs <- tibble(
+#   `#IID` = paste0("HG", "000", rep(1:50)),
+#   ALLELE_CT = rep(1386484, 50),
+#   NAMED_ALLELE_DOSAGE_SUM = rep(1386484, 50),
+#   PC1_AVG = rnorm(50, 0, 1),
+#   PC2_AVG = rnorm(50, 0, 1),
+#   PC3_AVG = rnorm(50, 0, 1),
+#   PC4_AVG = rnorm(50, 0, 1),
+#   PC5_AVG = rnorm(50, 0, 1),
+#   PC6_AVG = rnorm(50, 0, 1),
+#   PC7_AVG = rnorm(50, 0, 1),
+#   PC8_AVG = rnorm(50, 0, 1),
+#   PC9_AVG = rnorm(50, 0, 1),
+#   PC10_AVG = rnorm(50, 0, 1)
+# )
+# 
+# colnames(ref_pcs) <- colnames(temp)
+# write_tsv(ref_pcs, "test_data/ref_pcs.tsv")
+# 
+# ref_groups <- tibble(
+#   subject_id = paste0("HG", "000", rep(1:50)),
+#   group = sample(x = c("A", "B", "C", "D"), size = 50, replace = TRUE)
+# )
+# write_tsv(ref_groups, "test_data/ref_groups.tsv")
 ```
 
