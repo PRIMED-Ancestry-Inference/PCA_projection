@@ -1,6 +1,9 @@
 library(argparser)
 
 # Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
+# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
+# Rscript pca_plots.R --data_file merged_pcs.tsv --groups_file merged_groups.tsv --colormap colormap.tsv --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
+
 # Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
 # Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore $(if [ -f "test_data/groups_file_test.tsv" ]; then echo "--groups_file test_data/groups_file_test.tsv"; fi) --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection
 
@@ -44,7 +47,7 @@ colormap <- argv$colormap
 n_pairs <- argv$n_pairs
 path_to_rmd <- argv$path_to_rmd
 
-parameters <- list(data_file=data_file, groups_file=groups_file, n_pairs=n_pairs)
+parameters <- list(data_file=data_file, groups_file=groups_file, colormap=colormap, n_pairs=n_pairs)
 
 file.copy(file.path(path_to_rmd, "pca_plots.Rmd"), "pca_plots.Rmd")
 rmarkdown::render(input = "pca_plots.Rmd", params = parameters, quiet=TRUE)

@@ -6,6 +6,7 @@ output: html_document
 params: 
   data_file: ""
   groups_file: ""
+  colormap: ""
   n_pairs: ""
 ---
 
@@ -34,51 +35,62 @@ dark2 <- c('#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d'
 ```{r read data files}
 # Read data file 
 dat <- as.data.frame(read_tsv(data_file))
-colnames(dat)[colnames(dat)=="#IID"] <- "IID"
 pc_columns <- grep("^PC", names(dat), value = TRUE)
 num_pcs <- length(pc_columns)
 
-# Read colormap file 
-colormap <- as.data.frame(read_tsv(colormap))
+
+# Merge projection file with groups
+if(!is.na(groups_file)) {
+    groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
+    colnames(groups_dat) <- c("#IID", "group") # Make sure column names are consistent
+    
+    dat <- merge(dat, groups_dat, by = "#IID", all.x = TRUE)
+} else {
+    dat$group <- "NA"
+}
 
 # Color by group 
-if(!is.na(groups_file)) {
-  groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
-  colnames(groups_dat)[1] <- "IID"
-  group <- colnames(groups_dat)[2]
-  dat <- merge(dat, groups_dat, by = "IID", all.x = TRUE)
+# If colormap is provided, use it
+# Else, make colormap using groups_file 
+if(!is.na(colormap)) {
+  colormap <- as.data.frame(read_tsv(colormap, col_names=TRUE, col_types="cc"))
   
-  n_groups <- length(unique(groups_dat$group))
+  has_colormap <- TRUE
+} else {
+  n_groups <- length(unique(dat$group))
   
+  # Define colors based on number of groups
   if(n_groups <= 8) {
     palette <- dark2[1:n_groups]
   } else if(n_groups <= 12) {
     palette <- paired[1:n_groups]
   } 
   
-} else {
-  group <- "group"
-  dat$group <- "NA"
+  # Make a colormap 
+  colormap <- tibble(
+      group = unique(dat$group),
+      color = palette[1:n_groups]
+    )
   
-  palette <- dark2[1]
+  has_colormap <- TRUE
 }
 
-# Filter data for columns relevant for PC plots 
+# Filter data for columns relevant for PC plots
 dat <- dat %>% select(
-  starts_with("PC"), 
+  starts_with("PC"),
   group
 )
 ```
 
-
-```{r, fig.dim=c(7,5)}
-print(head(dat))
-print(n_groups)
+```{r PC1 PC2 Plots, fig.dim=c(7,5)}
 # PC 1 and PC 2
-if(n_groups <= 12) {
+if(has_colormap) {
   p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
     geom_point(alpha=0.5) +
-    scale_colour_manual(values = palette)
+    scale_color_manual(values = setNames(colormap$color, colormap$group)) + 
+    labs(color = "Group") + # Legend title
+    theme_minimal() +  # Minimal theme for simplicity
+    theme(legend.position = "right")  # Legend position
 } else {
   p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
     geom_point(alpha=0.5)
@@ -89,24 +101,27 @@ ggsave("out_file_pc12.png", plot = p, width = 7, height = 6)
 print(p)
 ```
 
-
-```{r, fig.dim=c(8,8)}
+```{r GGPairs Plots, fig.dim=c(8,8)}
 npr <- min(num_pcs, n_pairs)
 n_plots <- ceiling(npr/5) 
 
 for(i in 1:n_plots) {
   columns <- (5*(i-1) + 1):min(npr, 5*i)
   
-  if(n_groups <= 12) {
-  p <- ggpairs(dat, 
-               mapping = aes(color = .data[[group]], alpha = 0.5), 
-               columns = columns) + 
-    scale_color_manual(values = palette)
-  } else {
-    p <- ggpairs(dat, 
-                 mapping = aes(color = .data[[group]], alpha = 0.5), 
-                 columns = columns) 
-  }
+  if(has_colormap) {
+    p <- ggpairs(dat,
+                 mapping = aes(color = group, alpha = 0.5),
+                 columns = columns,
+                 lower = list(continuous = "points", mapping = aes(color = group)),
+                 upper = list(continuous = "cor"),
+                 diag = list(continuous = "densityDiag", mapping = aes(fill = group))) +
+      scale_color_manual(values = setNames(colormap$color, colormap$group)) +
+      scale_fill_manual(values = setNames(colormap$color, colormap$group)) 
+    } else {
+      p <- ggpairs(dat, 
+                   mapping = aes(color = group, alpha = 0.5), 
+                   columns = columns) 
+    }
   
   print(p)
   file_name <- paste0("out_file_pairs_", i, ".png")
@@ -114,23 +129,23 @@ for(i in 1:n_plots) {
 }
 ```
 
-```{r, fig.dim=c(10,5)}
+```{r Parcoord Plots, fig.dim=c(10,5)}
 # Parcoord Plots
-if(n_groups <= 12) {
+if(has_colormap) {
   p <- ggparcoord(dat,
-                  columns = 1:num_pcs, 
-                  groupColumn = group, 
-                  alphaLines = 0.5, 
+                  columns = 1:num_pcs,
+                  groupColumn = "group",
+                  alphaLines = 0.5,
                   scale = "uniminmax") +
-    scale_color_manual(values = palette) + 
+    scale_color_manual(values = setNames(colormap$color, colormap$group)) +
     guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
     xlab("PC") +
     ylab("")
 } else {
   p <- ggparcoord(dat,
-                columns = 1:num_pcs, 
-                groupColumn = group, 
-                alphaLines = 0.5, 
+                columns = 1:num_pcs,
+                groupColumn = group,
+                alphaLines = 0.5,
                 scale = "uniminmax") +
   guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
   xlab("PC") +
@@ -152,7 +167,7 @@ set.seed(4)
 # temp <- read_tsv("test_data/pca_plots_test_data.sscore")
 # 
 # groups_file_test <- tibble(
-#   subject_id = temp$`#IID`,
+#   `#IID` = temp$`#IID`,
 #   # group = sample(x = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"), size = length(temp$`#IID`), replace = TRUE)
 #   # group = sample(x = c("A"), size = length(temp$`#IID`), replace = TRUE)
 #   group = sample(x = c("A", "B", "C", "D"), size = length(temp$`#IID`), replace = TRUE)
@@ -180,7 +195,7 @@ set.seed(4)
 # write_tsv(ref_pcs, "test_data/ref_pcs.tsv")
 # 
 # ref_groups <- tibble(
-#   subject_id = paste0("HG", "000", rep(1:50)),
+#   `#IID` = paste0("HG", "000", rep(1:50)),
 #   group = sample(x = c("A", "B", "C", "D"), size = 50, replace = TRUE)
 # )
 # write_tsv(ref_groups, "test_data/ref_groups.tsv")
