@@ -63,27 +63,27 @@ workflow projected_PCA {
 				pc_col_last = identifyColumns.pc_col_last
 		}
 
-		if (run_pca_projected.projection_file != "NULL") {
+		if (defined(run_pca_projected.projection_file)) {
 			call pca_plots.run_pca_plots {
 				input: 
 					data_file = run_pca_projected.projection_file
 			}
-		}
 
-		# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
-		if (ref_pcs != "NULL") {
-			call concatenateFiles {
-				input: 
-					ref_pcs = ref_pcs,
-					ref_groups = ref_groups,
-					projection_file = run_pca_projected.projection_file
-			}
+			# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
+			if (defined(ref_pcs)) {
+				call concatenateFiles {
+					input: 
+						ref_pcs = ref_pcs,
+						ref_groups = ref_groups,
+						projection_file = run_pca_projected.projection_file
+				}
 
-			call pca_plots.run_pca_plots {
-				input: 
-					data_file = concatenateFiles.merged_file,
-					groups_file = ref_groups,
-					colormap = concatenateFiles.colormap
+				call pca_plots.run_pca_plots as run_pca_plots_ref {
+					input: 
+						data_file = concatenateFiles.merged_pcs,
+						groups_file = concatenateFiles.merged_groups,
+						colormap = concatenateFiles.colormap
+				}
 			}
 		}
 	}
@@ -96,6 +96,10 @@ workflow projected_PCA {
         Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
         File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
         File? pca_plots = run_pca_plots.pca_plots
+		File? pca_plots_pc12_ref = run_pca_plots_ref.pca_plots_pc12
+        Array[File]? pca_plots_pairs_ref = run_pca_plots_ref.pca_plots_pairs
+        File? pca_plots_parcoord_ref = run_pca_plots_ref.pca_plots_parcoord
+        File? pca_plots_ref = run_pca_plots_ref.pca_plots
 	}
 
 	meta {
@@ -177,15 +181,15 @@ task concatenateFiles {
     }
 
 	command <<<
-	cat ~{ref_pcs} ~{projection_file} > merged_file 
 	Rscript /usr/local/PCA_projection/colormap.R \
 		--ref_pcs ~{ref_pcs} \
-		$(if [ -n "~{ref_groups}" ]; then echo "--groups_file ~{ref_groups}"; fi) \
+		$(if [ -n "~{ref_groups}" ]; then echo "--ref_groups ~{ref_groups}"; fi) \
 		--projection_file ~{projection_file}
 	>>>
 
 	output {
-		File merged_file = "merged_file"
+		File merged_pcs = "merged_pcs.tsv"
+		File merged_groups = "merged_groups.tsv"
 		File colormap = "colormap.tsv"
 	}
 
