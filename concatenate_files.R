@@ -2,7 +2,7 @@ library(argparser)
 library(readr)
 library(tidyr)
 
-# Rscript colormap.R --ref_pcs test_data/ref_pcs.tsv --ref_groups test_data/ref_groups.tsv --projection_file test_data/pca_plots_test_data.sscore
+# Rscript concatenate_files.R --ref_pcs test_data/ref_pcs.tsv --ref_groups test_data/ref_groups.tsv --projection_file test_data/pca_plots_test_data.sscore
 
 # Get parameters 
 argp <- arg_parser("colormap")
@@ -28,45 +28,53 @@ ref_groups <- argv$ref_groups
 projection_file <- argv$projection_file
 
 # Read data
-ref_pcs <- as.data.frame(read_tsv(ref_pcs))
-colnames(ref_pcs)[colnames(ref_pcs)=="#IID"] <- "IID"
 projection_file <- as.data.frame(read_tsv(projection_file))
-colnames(projection_file)[colnames(projection_file)=="#IID"] <- "IID"
 
-merged_pcs <- rbind(ref_pcs, projection_file)
-
-
-# Define colors 
-paired <- c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99','#b15928')
-dark2 <- c('#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#666666')
-
-if(!is.na(ref_groups)) {
-  ref_groups <- as.data.frame(read_tsv(ref_groups))
-  colnames(ref_groups)[1] <- "IID"
-  groups <- unique(ref_groups$group)
-  n_groups <- length(groups)
-  
-  if(n_groups <= 7) {
-    palette <- dark2[1:n_groups]
-  } else if(n_groups <= 12) {
-    palette <- paired[1:ln_groups]
-  } 
-  
-  colormap <- tibble(
-    group = c(groups, "projected_samples"),
-    color = c(palette[1:n_groups], '#666666')
-    )
-  
-  merged_groups <- rbind(ref_groups, data.frame(IID = projection_file$IID, group = rep("projected_samples", nrow(projection_file))))
-  
+if(is.na(ref_pcs)) {
+  merged_pcs <- projection_file
+  merged_groups <- data.frame(`#IID` = projection_file$`#IID`, group = rep("projected_samples", nrow(projection_file)))
 } else {
-  colormap <- tibble(
-    group = c("ref_samples", "projected_samples"),
-    color = c('#1f78b4', '#666666')
-    )
   
-  merged_groups <- rbind(data.frame(IID = ref_pcs$IID, group = ref("ref_samples", nrow(ref_pcs))), data.frame(IID = projection_file$IID, group = rep("projected_samples", nrow(projection_file))))
+  # Read ref data 
+  ref_pcs <- as.data.frame(read_tsv(ref_pcs))
+  
+  # Concatenate files
+  merged_pcs <- rbind(ref_pcs, projection_file)
+  
+  # Define colors 
+  paired <- c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99','#b15928')
+  dark2 <- c('#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#666666')
+  
+  if(!is.na(ref_groups)) {
+    ref_groups <- as.data.frame(read_tsv(ref_groups))
+    groups <- unique(ref_groups$group)
+    n_groups <- length(groups)
+    
+    if(n_groups <= 7) {
+      palette <- dark2[1:n_groups]
+    } else if(n_groups <= 12) {
+      palette <- paired[1:ln_groups]
+    } 
+    
+    colormap <- tibble(
+      group = c(groups, "projected_samples"),
+      color = c(palette[1:n_groups], '#666666')
+    )
+    df <- data.frame(`#IID` = projection_file$`#IID`, group = rep("projected_samples", nrow(projection_file)))
+    colnames(df) <- c("#IID", "group")
+    merged_groups <- rbind(ref_groups, df)
+    
+  } else {
+    colormap <- tibble(
+      group = c("ref_samples", "projected_samples"),
+      color = c('#1f78b4', '#666666')
+    )
+    
+    merged_groups <- rbind(data.frame(`#IID` = ref_pcs$`#IID`, group = ref("ref_samples", nrow(ref_pcs))), data.frame(`#IID` = projection_file$`#IID`, group = rep("projected_samples", nrow(projection_file))))
+    colnames(merged_groups) <- c("#IID", "group")
+  }
 }
+
 
 write_tsv(colormap, "colormap.tsv")
 write_tsv(merged_pcs, "merged_pcs.tsv")
