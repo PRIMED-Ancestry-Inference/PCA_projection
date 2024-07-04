@@ -69,11 +69,14 @@ workflow projected_PCA {
 					data_file = run_pca_projected.projection_file
 			}
 
+			# need this because ref_pcs is optional but input to concatenateFiles is required
+    		File ref_pcs1 = select_first([ref_pcs, ""])
+
 			# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
 			if (defined(ref_pcs)) {
 				call concatenateFiles {
 					input: 
-						ref_pcs = ref_pcs,
+						ref_pcs = ref_pcs1,
 						ref_groups = ref_groups,
 						projection_file = run_pca_projected.projection_file
 				}
