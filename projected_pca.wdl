@@ -184,7 +184,7 @@ task concatenateFiles {
     }
 
 	command <<<
-	Rscript /usr/local/PCA_projection/colormap.R \
+	Rscript /usr/local/PCA_projection/concatenate_files.R \
 		--ref_pcs ~{ref_pcs} \
 		$(if [ -n "~{ref_groups}" ]; then echo "--ref_groups ~{ref_groups}"; fi) \
 		--projection_file ~{projection_file}
