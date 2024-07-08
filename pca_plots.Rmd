@@ -42,7 +42,7 @@ num_pcs <- length(pc_columns)
 # Merge projection file with groups
 if(!is.na(groups_file)) {
     groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
-    colnames(groups_dat) <- c("#IID", "group") # Make sure column names are consistent
+    colnames(groups_dat) <- c("#IID", "group") # Make sure column names are consistent: #IID shared across groups file and data file, group shared across groups file and colormap file 
     
     dat <- merge(dat, groups_dat, by = "#IID", all.x = TRUE)
 } else {
@@ -115,8 +115,8 @@ for(i in 1:n_plots) {
                  lower = list(continuous = "points", mapping = aes(color = group)),
                  upper = list(continuous = "cor"),
                  diag = list(continuous = "densityDiag", mapping = aes(fill = group))) +
-      scale_color_manual(values = setNames(colormap$color, colormap$group)) +
-      scale_fill_manual(values = setNames(colormap$color, colormap$group)) 
+      scale_color_manual(values = colormap$color, breaks = colormap$group) +
+      scale_fill_manual(values = colormap$color, breaks = colormap$group) 
     } else {
       p <- ggpairs(dat, 
                    mapping = aes(color = group, alpha = 0.5), 
@@ -137,7 +137,7 @@ if(has_colormap) {
                   groupColumn = "group",
                   alphaLines = 0.5,
                   scale = "uniminmax") +
-    scale_color_manual(values = setNames(colormap$color, colormap$group)) +
+    scale_color_manual(values = colormap$color, breaks = colormap$group) +
     guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
     xlab("PC") +
     ylab("")
@@ -163,7 +163,7 @@ print(p)
 
 
 ```{r generating test data, include=FALSE}
-set.seed(4)
+# set.seed(4)
 # temp <- read_tsv("test_data/pca_plots_test_data.sscore")
 # 
 # groups_file_test <- tibble(
