@@ -201,3 +201,51 @@ print(p)
 # write_tsv(ref_groups, "test_data/ref_groups.tsv")
 ```
 
+
+```{r copying test data, include=FALSE}
+# library(AnVIL)
+# library(googleCloudStorageR)
+# file_name <- as.character('gs://fc-0c05ad53-4513-482a-8f92-c3d0004f72bc/1000G_populations.txt')
+# table_pipe <- gsutil_pipe(file_name, "rb")
+# df <- read_tsv(table_pipe,
+#                  col_types = cols(subject_id="c"),
+#                  guess_max=100000,
+#                  show_col_types=TRUE)
+# close(table_pipe)
+# 
+# df <- df %>% select(
+#   subject_id, 
+#   group = superpopulation
+# )
+# 
+# write_tsv(df, file = "1000G_populations.txt")
+# 
+# gsutil_cp("1000G_populations.txt", file.path(avbucket(), "test_data/"))
+
+
+# file_name <- as.character('gs://fc-8dc38d1d-c3f4-46de-8d4c-176967d6663e/submissions/aa9d2978-dde3-4f04-9640-0663dffc386c/create_pca_projection/9b20f78c-264a-4deb-94d4-d422d09724ec/call-run_pca_projected/merged_proj_pca.sscore')
+# table_pipe <- gsutil_pipe(file_name, "rb")
+# df <- read_tsv(table_pipe,
+#                  col_types = cols(subject_id="c"),
+#                  guess_max=100000,
+#                  show_col_types=TRUE)
+# close(table_pipe)
+# 
+# write_tsv(df, file = "ref_proj_pca.sscore")
+# 
+# gsutil_cp("ref_proj_pca.sscore", file.path(avbucket(), "test_data/"))
+# 
+# 
+# file_name <- as.character('gs://fc-secure-9c2a0756-17c5-4878-b39b-2aadaaf0701d/submissions/8733c969-3ec2-4016-8b98-3ef4a655472b/projected_PCA/2e22412f-42b5-4c44-bed8-98895a976452/call-run_pca_projected/merged_proj_pca.sscore')
+# table_pipe <- gsutil_pipe(file_name, "rb")
+# df <- read_tsv(table_pipe,
+#                  col_types = cols(subject_id="c"),
+#                  guess_max=100000,
+#                  show_col_types=TRUE)
+# close(table_pipe)
+# 
+# write_tsv(df, file = "proj_pca.sscore")
+# 
+# gsutil_cp("proj_pca.sscore", file.path(avbucket(), "test_data/"))
+```
+
