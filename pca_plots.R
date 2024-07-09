@@ -5,7 +5,7 @@ library(argparser)
 # Rscript pca_plots.R --data_file merged_pcs.tsv --groups_file merged_groups.tsv --colormap colormap.tsv --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
 
 # Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
-# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore $(if [ -f "test_data/groups_file_test.tsv" ]; then echo "--groups_file test_data/groups_file_test.tsv"; fi) --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection
+# Rscript pca_plots.R --data_file merged_pcs.tsv --groups_file merged_groups.tsv --colormap colormap.tsv --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
 
 
 # Get parameters 
