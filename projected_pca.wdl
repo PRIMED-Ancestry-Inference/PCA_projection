@@ -11,6 +11,7 @@ workflow projected_PCA {
 		File ref_freqs
 		File? ref_pcs
 		File? ref_groups
+		File?? groups_file
 		Array[File] vcf
 		Float min_overlap = 0.95
 	}
@@ -66,7 +67,8 @@ workflow projected_PCA {
 		if (defined(run_pca_projected.projection_file)) {
 			call pca_plots.run_pca_plots {
 				input: 
-					data_file = run_pca_projected.projection_file
+					data_file = run_pca_projected.projection_file, 
+					groups_file = groups_file
 			}
 
 			# need this because ref_pcs is optional but input to concatenateFiles is required
