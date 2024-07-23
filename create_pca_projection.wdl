@@ -17,6 +17,7 @@ workflow create_pca_projection {
 		Int? window_size
 		Int? shift_size
 		Int? r2_threshold
+		File? groups_file
 	}
 
 	call identifyColumns {
@@ -99,7 +100,8 @@ workflow create_pca_projection {
 
 	call pca_plots.run_pca_plots {
 		input: 
-			data_file = run_pca_projected.projection_file
+			data_file = run_pca_projected.projection_file, 
+			groups_file = groups_file
 	}
 
 	output {
