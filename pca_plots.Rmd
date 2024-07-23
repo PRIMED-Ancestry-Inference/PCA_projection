@@ -42,7 +42,7 @@ num_pcs <- length(pc_columns)
 # Merge projection file with groups
 if(!is.na(groups_file)) {
     groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
-    groups_dat$`#IID` <- as.character(groups_dat$`#IID`)
+    groups_dat$`#IID` <- as.character(groups_dat$subject_id)
     
     dat <- merge(dat, groups_dat, by = "#IID", all.x = TRUE)
 } else {
@@ -204,6 +204,7 @@ print(p)
 ```{r copying test data, include=FALSE}
 # library(AnVIL)
 # library(googleCloudStorageR)
+
 # file_name <- as.character('gs://fc-0c05ad53-4513-482a-8f92-c3d0004f72bc/1000G_populations.txt')
 # table_pipe <- gsutil_pipe(file_name, "rb")
 # df <- read_tsv(table_pipe,
@@ -219,7 +220,7 @@ print(p)
 # gsutil_cp("1000G_populations.txt", file.path(avbucket(), "test_data/"))
 
 
-# file_name <- as.character('gs://fc-8dc38d1d-c3f4-46de-8d4c-176967d6663e/submissions/aa9d2978-dde3-4f04-9640-0663dffc386c/create_pca_projection/9b20f78c-264a-4deb-94d4-d422d09724ec/call-run_pca_projected/merged_proj_pca.sscore')
+# file_name <- as.character('gs://fc-b7560977-432c-455c-874e-b68458d57c38/submissions/d002b3f8-64bf-49c0-8ebc-0f152140bc2d/create_pca_projection/f21a3906-0979-4b9d-84f3-858fff0ff867/call-run_pca_projected/merged_proj_pca.sscore')
 # table_pipe <- gsutil_pipe(file_name, "rb")
 # df <- read_tsv(table_pipe,
 #                  col_types = cols(subject_id="c"),
@@ -228,8 +229,8 @@ print(p)
 # close(table_pipe)
 # write_tsv(df, file = "ref_proj_pca.sscore")
 # gsutil_cp("ref_proj_pca.sscore", file.path(avbucket(), "test_data/"))
-
-
+# 
+# 
 # file_name <- as.character('gs://fc-secure-9c2a0756-17c5-4878-b39b-2aadaaf0701d/submissions/8733c969-3ec2-4016-8b98-3ef4a655472b/projected_PCA/2e22412f-42b5-4c44-bed8-98895a976452/call-run_pca_projected/merged_proj_pca.sscore')
 # table_pipe <- gsutil_pipe(file_name, "rb")
 # df <- read_tsv(table_pipe,
@@ -239,8 +240,8 @@ print(p)
 # close(table_pipe)
 # write_tsv(df, file = "proj_pca.sscore")
 # gsutil_cp("proj_pca.sscore", file.path(avbucket(), "test_data/"))
-
-
+# 
+# 
 # file_name <- as.character('gs://fc-secure-1019059d-d48d-4593-ad86-11fcab5fb34f/submissions/acbc5e5d-fba1-4866-a41a-bf5f94488ddd/create_pca_projection/977df9e3-6bd0-45ee-b71c-9203c949bf7c/call-make_pca_loadings/merged_unrel_snp_loadings.acount')
 # table_pipe <- gsutil_pipe(file_name, "rb")
 # df <- read_tsv(table_pipe,
@@ -261,5 +262,19 @@ print(p)
 # close(table_pipe)
 # write_tsv(df, file = "merged_unrel_snp_loadings.eigenvec.allele")
 # gsutil_cp("merged_unrel_snp_loadings.eigenvec.allele", file.path(avbucket(), "test_data/"))
+```
+
+```{r}
+# temp <- read_tsv("proj_pca.sscore")
+# 
+# proj_groups_file <- tibble(
+#   subject_id = temp$`#IID`,
+#   # group = sample(x = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"), size = length(temp$`#IID`), replace = TRUE)
+#   # group = sample(x = c("A"), size = length(temp$`#IID`), replace = TRUE)
+#   group = sample(x = c("A", "B", "C", "D"), size = length(temp$`#IID`), replace = TRUE)
+# )
+# 
+# write_tsv(proj_groups_file, "test_data/proj_groups_file.tsv")
+# gsutil_cp("test_data/proj_groups_file.tsv", file.path(avbucket(), "test_data/"))
 ```
 
