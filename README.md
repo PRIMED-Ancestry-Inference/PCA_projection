@@ -19,6 +19,7 @@ max_kinship_coefficient | if remove_relateds is true, remove one of each pair of
 window_size | window size for LD pruning (default 10,000)
 shift_size | shift size for LD pruning (default 1000)
 r2_threshold | r2 threshold for LD pruning (default 0.1)
+groups_file (optional) | Two-column tsv file of subject_id and group 
 
 
 Outputs:
@@ -30,6 +31,10 @@ snp_loadings | SNP loadings
 loadings_log | log from running plink2 --pca
 pca_projection | PCs from running PCA on this dataset with calculated loadings
 projection_log | log from running plink2 --score
+pca_plots_pc12 (optional) | png file of PC1 and PC2 scatterplot
+pca_plot_pairs (optional) | png file of pairwise PC scatterplots 
+pca_plots_parcoord (optional) | png file of parallel coordinates plot for PCs
+pca_plots (optional) | html file with PCA plots 
 
 
 ## projected_PCA
@@ -43,6 +48,9 @@ input | description
 --- | ---
 ref_loadings | File with SNP loadings (e.g. snp_loadings output from create_pca_projection)
 ref_freqs | File with variant frequencies (e.g. var_freq_counts output from create_pca_projection)
+ref_pcs (optional) | PCs from running PCA on reference dataset
+ref_groups (optional) | Two-column tsv file of subject_id and group from reference dataset
+groups_file (optional) | Two-column tsv file of subject_id and group from sample dataset
 vcf | Array of VCF files (possibly split by chromosome)
 min_overlap | minimum overlap between variants in loadings and vcf files (default 0.95). If the overlap is less than this threshold, PCA will not be run and the workflow will exit.
 
@@ -53,7 +61,14 @@ output | description
 --- | ---
 projection_file | PCs from running PCA on this dataset with ref_loadings
 projection_log | log from running plink2 --score
-
+pca_plots_pc12 (optional) | png file of PC1 and PC2 scatterplot of samples
+pca_plot_pairs (optional) | png file of pairwise PC scatterplots of samples
+pca_plots_parcoord (optional) | png file of parallel coordinates plot for PCs of samples
+pca_plots (optional) | html file with PCA plots of samples 
+pca_plots_pc12_ref (optional) | png file of PC1 and PC2 scatterplot of samples projected onto references 
+pca_plot_pairs_ref (optional) | png file of pairwise PC scatterplots of samples projected onto references 
+pca_plots_parcoord_ref (optional) | png file of parallel coordinates plot for PCs of samples projected onto references 
+pca_plots_ref (optional) | html file with PCA plots of samples projected onto references 
 
 
 ## LD_pruning
