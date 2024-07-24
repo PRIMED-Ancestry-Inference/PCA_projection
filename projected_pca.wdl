@@ -11,7 +11,7 @@ workflow projected_PCA {
 		File ref_freqs
 		File? ref_pcs
 		File? ref_groups
-		File?? groups_file
+		File? groups_file
 		Array[File] vcf
 		Float min_overlap = 0.95
 	}
