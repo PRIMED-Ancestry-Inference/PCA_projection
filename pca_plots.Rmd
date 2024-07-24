@@ -272,7 +272,7 @@ print(p)
 ```
 
 ```{r}
-# temp <- read_tsv("ref_proj_pca.sscore")
+# temp <- read_tsv("proj_pca.sscore")
 # 
 # proj_groups_file <- tibble(
 #   subject_id = temp$`#IID`,
@@ -281,7 +281,7 @@ print(p)
 #   group = sample(x = c("A", "B", "C", "D"), size = length(temp$`#IID`), replace = TRUE)
 # )
 # 
-# write_tsv(proj_groups_file, "test_data/ref_proj_groups_file.tsv")
-# gsutil_cp("test_data/ref_proj_groups_file.tsv", file.path(avbucket(), "test_data/"))
+# write_tsv(proj_groups_file, "test_data/proj_groups_file.tsv")
+# gsutil_cp("test_data/proj_groups_file.tsv", file.path(avbucket(), "test_data/"))
 ```
 

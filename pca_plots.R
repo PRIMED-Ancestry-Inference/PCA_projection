@@ -1,13 +1,5 @@
 library(argparser)
 
-# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
-# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
-# Rscript pca_plots.R --data_file merged_pcs.tsv --groups_file merged_groups.tsv --colormap colormap.tsv --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
-
-# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
-# Rscript pca_plots.R --data_file merged_pcs.tsv --groups_file merged_groups.tsv --colormap colormap.tsv --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
-# Rscript pca_plots.R --data_file proj_pca.sscore --groups_file test_data/proj_groups_file.tsv --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
-
 # Get parameters 
 argp <- arg_parser("PCA plots")
 argp <- add_argument(parser = argp, 
@@ -51,3 +43,13 @@ parameters <- list(data_file=data_file, groups_file=groups_file, colormap=colorm
 
 file.copy(file.path(path_to_rmd, "pca_plots.Rmd"), "pca_plots.Rmd")
 rmarkdown::render(input = "pca_plots.Rmd", params = parameters, quiet=TRUE)
+
+
+
+# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
+# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
+# Rscript pca_plots.R --data_file merged_pcs.tsv --groups_file merged_groups.tsv --colormap colormap.tsv --n_pairs 3 --path_to_rmd ~/Downloads/PCA_projection 
+
+# Rscript pca_plots.R --data_file test_data/pca_plots_test_data.sscore --groups_file test_data/groups_file_test.tsv --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
+# Rscript pca_plots.R --data_file merged_pcs.tsv --groups_file merged_groups.tsv --colormap colormap.tsv --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
+# Rscript pca_plots.R --data_file ref_proj_pca.sscore --groups_file 1000G_populations.txt --n_pairs 3 --path_to_rmd /home/rstudio/PCA_projection
