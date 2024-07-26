@@ -64,30 +64,31 @@ workflow projected_PCA {
 			pc_col_last = identifyColumns.pc_col_last
 	}
 
-		call pca_plots.run_pca_plots {
-			input: 
-				data_file = run_pca_projected.projection_file, 
-				groups_file = groups_file
-		}
+	call pca_plots.run_pca_plots {
+		input: 
+			data_file = run_pca_projected.projection_file, 
+			groups_file = groups_file
+	}
+
+	# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
+	if (defined(ref_pcs)) {
 
 		# need this because ref_pcs is optional but input to concatenateFiles is required
 		File ref_pcs1 = select_first([ref_pcs, ""])
 
-		# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
-		if (defined(ref_pcs)) {
-			call concatenateFiles {
-				input: 
-					ref_pcs = ref_pcs1,
-					ref_groups = ref_groups,
-					projection_file = run_pca_projected.projection_file
-			}
+		call concatenateFiles {
+			input: 
+				ref_pcs = ref_pcs1,
+				ref_groups = ref_groups,
+				projection_file = run_pca_projected.projection_file
+		}
 
-			call pca_plots.run_pca_plots as run_pca_plots_ref {
-				input: 
-					data_file = concatenateFiles.merged_pcs,
-					groups_file = concatenateFiles.merged_groups,
-					colormap = concatenateFiles.colormap
-			}
+		call pca_plots.run_pca_plots as run_pca_plots_ref {
+			input: 
+				data_file = concatenateFiles.merged_pcs,
+				groups_file = concatenateFiles.merged_groups,
+				colormap = concatenateFiles.colormap
+		}
 	}
 
 	output {
