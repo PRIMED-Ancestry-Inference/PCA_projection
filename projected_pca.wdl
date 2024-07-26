@@ -43,64 +43,63 @@ workflow projected_PCA {
 	File final_pvar = select_first([mergeFiles.out_pvar, subsetVariants.subset_pvar[0]])
 	File final_psam = select_first([mergeFiles.out_psam, subsetVariants.subset_psam[0]])
 
+	#check for overlap, if overlap is less than threshold, stop
 	call checkOverlap {
 		input:
 			variant_file = ref_loadings,
-			pvar = final_pvar
+			pvar = final_pvar,
+			min_overlap = min_overlap
 	}
 
-	#check for overlap, if overlap is less than threshold, stop
-	if (checkOverlap.overlap >= min_overlap) {
-		call pca_tasks.run_pca_projected {
-			input:
-				pgen = final_pgen,
-				pvar = final_pvar,
-				psam = final_psam,
-				loadings = ref_loadings,
-				freq_file = ref_freqs,
-				id_col = identifyColumns.id_col,
-				allele_col = identifyColumns.allele_col,
-				pc_col_first = identifyColumns.pc_col_first,
-				pc_col_last = identifyColumns.pc_col_last
+	call pca_tasks.run_pca_projected {
+		input:
+			pgen = final_pgen,
+			pvar = final_pvar,
+			psam = final_psam,
+			loadings = ref_loadings,
+			freq_file = ref_freqs,
+			id_col = identifyColumns.id_col,
+			allele_col = identifyColumns.allele_col,
+			pc_col_first = identifyColumns.pc_col_first,
+			pc_col_last = identifyColumns.pc_col_last
+	}
+
+	if (defined(run_pca_projected.projection_file)) {
+		call pca_plots.run_pca_plots {
+			input: 
+				data_file = run_pca_projected.projection_file, 
+				groups_file = groups_file
 		}
 
-		if (defined(run_pca_projected.projection_file)) {
-			call pca_plots.run_pca_plots {
+		# need this because ref_pcs is optional but input to concatenateFiles is required
+		File ref_pcs1 = select_first([ref_pcs, ""])
+
+		# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
+		if (defined(ref_pcs)) {
+			call concatenateFiles {
 				input: 
-					data_file = run_pca_projected.projection_file, 
-					groups_file = groups_file
+					ref_pcs = ref_pcs1,
+					ref_groups = ref_groups,
+					projection_file = run_pca_projected.projection_file
 			}
 
-			# need this because ref_pcs is optional but input to concatenateFiles is required
-			File ref_pcs1 = select_first([ref_pcs, ""])
-
-			# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
-			if (defined(ref_pcs)) {
-				call concatenateFiles {
-					input: 
-						ref_pcs = ref_pcs1,
-						ref_groups = ref_groups,
-						projection_file = run_pca_projected.projection_file
-				}
-
-				call pca_plots.run_pca_plots as run_pca_plots_ref {
-					input: 
-						data_file = concatenateFiles.merged_pcs,
-						groups_file = concatenateFiles.merged_groups,
-						colormap = concatenateFiles.colormap
-				}
+			call pca_plots.run_pca_plots as run_pca_plots_ref {
+				input: 
+					data_file = concatenateFiles.merged_pcs,
+					groups_file = concatenateFiles.merged_groups,
+					colormap = concatenateFiles.colormap
 			}
 		}
 	}
 
 	output {
-		File? projection_file = run_pca_projected.projection_file
-		File? projection_log = run_pca_projected.projection_log
+		File projection_file = run_pca_projected.projection_file
+		File projection_log = run_pca_projected.projection_log
 		Float overlap = checkOverlap.overlap
-		File? pca_plots_pc12 = run_pca_plots.pca_plots_pc12
-		Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
-		File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
-		File? pca_plots = run_pca_plots.pca_plots
+		File pca_plots_pc12 = run_pca_plots.pca_plots_pc12
+		Array[File] pca_plots_pairs = run_pca_plots.pca_plots_pairs
+		File pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
+		File pca_plots = run_pca_plots.pca_plots
 		File? pca_plots_pc12_ref = run_pca_plots_ref.pca_plots_pc12
 		Array[File]? pca_plots_pairs_ref = run_pca_plots_ref.pca_plots_pairs
 		File? pca_plots_parcoord_ref = run_pca_plots_ref.pca_plots_parcoord
@@ -149,6 +148,7 @@ task checkOverlap {
 	input {
 		File variant_file
 		File pvar
+		Float min_overlap
 	}
 
 	command <<<
@@ -164,6 +164,9 @@ task checkOverlap {
 		loadings_count=countLines("~{variant_file}")
 		new_loadings_count=countLines("~{pvar}")
 		proportion=float(new_loadings_count)/loadings_count
+		min_prop = ~{min_overlap}
+		if proportion < min_prop:
+			sys.exit(f"Variant overlap of {proportion} is less than minimum of {min_prop}")
 		print("%.3f" % proportion)
 		CODE
 	>>>
