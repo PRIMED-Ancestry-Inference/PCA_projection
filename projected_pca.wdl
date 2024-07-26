@@ -72,7 +72,7 @@ workflow projected_PCA {
 			}
 
 			# need this because ref_pcs is optional but input to concatenateFiles is required
-    		File ref_pcs1 = select_first([ref_pcs, ""])
+			File ref_pcs1 = select_first([ref_pcs, ""])
 
 			# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
 			if (defined(ref_pcs)) {
@@ -98,13 +98,13 @@ workflow projected_PCA {
 		File? projection_log = run_pca_projected.projection_log
 		Float overlap = checkOverlap.overlap
 		File? pca_plots_pc12 = run_pca_plots.pca_plots_pc12
-        Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
-        File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
-        File? pca_plots = run_pca_plots.pca_plots
+		Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
+		File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
+		File? pca_plots = run_pca_plots.pca_plots
 		File? pca_plots_pc12_ref = run_pca_plots_ref.pca_plots_pc12
-        Array[File]? pca_plots_pairs_ref = run_pca_plots_ref.pca_plots_pairs
-        File? pca_plots_parcoord_ref = run_pca_plots_ref.pca_plots_parcoord
-        File? pca_plots_ref = run_pca_plots_ref.pca_plots
+		Array[File]? pca_plots_pairs_ref = run_pca_plots_ref.pca_plots_pairs
+		File? pca_plots_parcoord_ref = run_pca_plots_ref.pca_plots_parcoord
+		File? pca_plots_ref = run_pca_plots_ref.pca_plots
 	}
 
 	meta {
@@ -183,7 +183,7 @@ task concatenateFiles {
 		File ref_pcs
 		File? ref_groups
 		File projection_file
-    }
+	}
 
 	command <<<
 	Rscript /usr/local/PCA_projection/concatenate_files.R \
@@ -199,6 +199,6 @@ task concatenateFiles {
 	}
 
 	runtime{
-        docker: "uwgac/pca_projection:0.1.0"
-    }
+		 docker: "uwgac/pca_projection:0.1.0"
+	}
 }
