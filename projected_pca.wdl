@@ -64,7 +64,6 @@ workflow projected_PCA {
 			pc_col_last = identifyColumns.pc_col_last
 	}
 
-	if (defined(run_pca_projected.projection_file)) {
 		call pca_plots.run_pca_plots {
 			input: 
 				data_file = run_pca_projected.projection_file, 
@@ -89,7 +88,6 @@ workflow projected_PCA {
 					groups_file = concatenateFiles.merged_groups,
 					colormap = concatenateFiles.colormap
 			}
-		}
 	}
 
 	output {
