@@ -165,9 +165,10 @@ task checkOverlap {
 		new_loadings_count=countLines("~{pvar}")
 		proportion=float(new_loadings_count)/loadings_count
 		min_prop = ~{min_overlap}
+		prop_string = "%.3f" % proportion
 		if proportion < min_prop:
-			sys.exit(f"Variant overlap of {proportion} is less than minimum of {min_prop}")
-		print("%.3f" % proportion)
+			sys.exit(f"Variant overlap of {prop_string} is less than minimum of {min_prop}")
+		print(prop_string)
 		CODE
 	>>>
 
