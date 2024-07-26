@@ -152,6 +152,7 @@ task checkOverlap {
 
 	command <<<
 		python3 <<CODE
+		import sys
 		def countLines (myfile):
 			line_count=0
 			with open(myfile, "r") as infp:
