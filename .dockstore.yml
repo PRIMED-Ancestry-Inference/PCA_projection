@@ -24,4 +24,9 @@ workflows:
     primaryDescriptorPath: /maf_by_pop.wdl
     testParameterFiles:
        - /maf_by_pop.json
+  - name: pca_plots
+    subclass: WDL
+    primaryDescriptorPath: /pca_plots.wdl
+    testParameterFiles:
+       - /pca_plots.json
        

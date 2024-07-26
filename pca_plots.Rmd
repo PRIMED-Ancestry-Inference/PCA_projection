@@ -1,0 +1,287 @@
+---
+title: "PCA Plots"
+author: "Amy Watt"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+params: 
+  data_file: ""
+  groups_file: ""
+  colormap: ""
+  n_pairs: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(readr)
+library(ggplot2)
+library(GGally)
+library(tidyr)
+library(dplyr)
+```
+
+```{r params}
+data_file <- params$data_file
+groups_file <- params$groups_file
+colormap <- params$colormap
+n_pairs <- params$n_pairs
+```
+
+```{r}
+paired <- c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99','#b15928')
+
+dark2 <- c('#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#666666')
+```
+
+```{r read data files}
+# Read data file 
+dat <- as.data.frame(read_tsv(data_file))
+pc_columns <- grep("^PC", names(dat), value = TRUE)
+num_pcs <- length(pc_columns)
+
+
+# Merge projection file with groups
+if(!is.na(groups_file)) {
+    groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
+    groups_dat$`#IID` <- as.character(groups_dat$subject)
+    
+    dat <- merge(dat, groups_dat, by = "#IID", all.x = TRUE)
+} else {
+    dat$group <- "NA"
+}
+
+# Color by group 
+# If colormap is provided, use it
+# Else, make colormap using groups_file 
+if(!is.na(colormap)) {
+  colormap <- as.data.frame(read_tsv(colormap, col_names=TRUE, col_types="cc"))
+  
+  has_colormap <- TRUE
+} else if(length(unique(dat$group) <= 12)) {
+  n_groups <- length(unique(dat$group))
+  
+  # Define colors based on number of groups
+  if(n_groups <= 8) {
+    palette <- dark2[1:n_groups]
+  } else if(n_groups <= 12) {
+    palette <- paired[1:n_groups]
+  } else {
+      ggplotColours <- function(n = 6, h = c(0, 360) + 15){
+        if ((diff(h) %% 360) < 1) h[2] <- h[2] - 360/n
+        hcl(h = (seq(h[1], h[2], length = n)), c = 100, l = 65)
+      }
+      
+      palette <- ggplotColours(n=n_groups)
+  }
+  
+  # Make a colormap 
+  colormap <- tibble(
+      group = unique(dat$group),
+      color = palette[1:n_groups]
+    )
+  
+  has_colormap <- TRUE
+}
+
+# Filter data for columns relevant for PC plots
+dat <- dat %>% select(
+  starts_with("PC"),
+  group
+)
+```
+
+```{r PC1 PC2 Plots, fig.dim=c(7,5)}
+# PC 1 and PC 2
+if(has_colormap) {
+  p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
+    geom_point(alpha=0.5) +
+    scale_color_manual(values = setNames(colormap$color, colormap$group)) + 
+    labs(color = "Group") + # Legend title
+    theme_minimal() +  # Minimal theme for simplicity
+    theme(legend.position = "right")  # Legend position
+} else {
+  p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
+    geom_point(alpha=0.5)
+}
+
+ggsave("out_file_pc12.png", plot = p, width = 7, height = 6)
+
+print(p)
+```
+
+```{r GGPairs Plots, fig.dim=c(8,8)}
+npr <- min(num_pcs, n_pairs)
+n_plots <- ceiling(npr/5) 
+
+for(i in 1:n_plots) {
+  columns <- (5*(i-1) + 1):min(npr, 5*i)
+
+  if(has_colormap) {
+    p <- ggpairs(dat,
+                 mapping = aes(color = group, alpha = 0.5),
+                 columns = columns,
+                 lower = list(continuous = "points", mapping = aes(color = group)),
+                 upper = list(continuous = "cor"),
+                 diag = list(continuous = "densityDiag", mapping = aes(fill = group))) +
+      scale_color_manual(values = colormap$color, breaks = colormap$group) +
+      scale_fill_manual(values = colormap$color, breaks = colormap$group)
+    } else {
+      p <- ggpairs(dat,
+                   mapping = aes(color = group, alpha = 0.5),
+                   columns = columns)
+    }
+
+  print(p)
+  file_name <- paste0("out_file_pairs_", i, ".png")
+  ggsave(file_name, plot = p, width=8, height=8)
+}
+```
+
+```{r Parcoord Plots, fig.dim=c(10,5)}
+if(has_colormap) {
+  p <- ggparcoord(dat,
+                  columns = 1:num_pcs,
+                  groupColumn = "group",
+                  alphaLines = 0.5,
+                  scale = "uniminmax") +
+    scale_color_manual(values = colormap$color, breaks = colormap$group) +
+    guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
+    xlab("PC") +
+    ylab("")
+} else {
+  p <- ggparcoord(dat,
+                columns = 1:num_pcs,
+                groupColumn = group,
+                alphaLines = 0.5,
+                scale = "uniminmax") +
+  guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
+  xlab("PC") +
+  ylab("")
+}
+
+ggsave("out_file_parcoord.png", plot = p, width = 10, height = 5)
+
+print(p)
+```
+
+
+
+
+
+
+```{r generating test data, include=FALSE}
+# set.seed(4)
+# temp <- read_tsv("test_data/pca_plots_test_data.sscore")
+# 
+# groups_file_test <- tibble(
+#   `#IID` = temp$`#IID`,
+#   # group = sample(x = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"), size = length(temp$`#IID`), replace = TRUE)
+#   # group = sample(x = c("A"), size = length(temp$`#IID`), replace = TRUE)
+#   group = sample(x = c("A", "B", "C", "D"), size = length(temp$`#IID`), replace = TRUE)
+# )
+# 
+# write_tsv(groups_file_test, "test_data/groups_file_test.tsv")
+# 
+# ref_pcs <- tibble(
+#   `#IID` = paste0("HG", "000", rep(1:50)),
+#   ALLELE_CT = rep(1386484, 50),
+#   NAMED_ALLELE_DOSAGE_SUM = rep(1386484, 50),
+#   PC1_AVG = rnorm(50, 0, 1),
+#   PC2_AVG = rnorm(50, 0, 1),
+#   PC3_AVG = rnorm(50, 0, 1),
+#   PC4_AVG = rnorm(50, 0, 1),
+#   PC5_AVG = rnorm(50, 0, 1),
+#   PC6_AVG = rnorm(50, 0, 1),
+#   PC7_AVG = rnorm(50, 0, 1),
+#   PC8_AVG = rnorm(50, 0, 1),
+#   PC9_AVG = rnorm(50, 0, 1),
+#   PC10_AVG = rnorm(50, 0, 1)
+# )
+# 
+# colnames(ref_pcs) <- colnames(temp)
+# write_tsv(ref_pcs, "test_data/ref_pcs.tsv")
+# 
+# ref_groups <- tibble(
+#   `#IID` = paste0("HG", "000", rep(1:50)),
+#   group = sample(x = c("A", "B", "C", "D"), size = 50, replace = TRUE)
+# )
+# write_tsv(ref_groups, "test_data/ref_groups.tsv")
+```
+
+
+```{r copying test data, include=FALSE}
+# library(AnVIL)
+# library(googleCloudStorageR)
+
+# file_name <- as.character('gs://fc-0c05ad53-4513-482a-8f92-c3d0004f72bc/1000G_populations.txt')
+# table_pipe <- gsutil_pipe(file_name, "rb")
+# df <- read_tsv(table_pipe,
+#                  col_types = cols(subject_id="c"),
+#                  guess_max=100000,
+#                  show_col_types=TRUE)
+# close(table_pipe)
+# df <- df %>% select(
+#   subject_id,
+#   group = population
+# )
+# write_tsv(df, file = "1000G_populations.txt")
+# gsutil_cp("1000G_populations.txt", file.path(avbucket(), "test_data/"))
+
+
+# file_name <- as.character('gs://fc-b7560977-432c-455c-874e-b68458d57c38/submissions/d002b3f8-64bf-49c0-8ebc-0f152140bc2d/create_pca_projection/f21a3906-0979-4b9d-84f3-858fff0ff867/call-run_pca_projected/merged_proj_pca.sscore')
+# table_pipe <- gsutil_pipe(file_name, "rb")
+# df <- read_tsv(table_pipe,
+#                  col_types = cols(subject_id="c"),
+#                  guess_max=100000,
+#                  show_col_types=TRUE)
+# close(table_pipe)
+# write_tsv(df, file = "ref_proj_pca.sscore")
+# gsutil_cp("ref_proj_pca.sscore", file.path(avbucket(), "test_data/"))
+# 
+# 
+# file_name <- as.character('gs://fc-secure-9c2a0756-17c5-4878-b39b-2aadaaf0701d/submissions/8733c969-3ec2-4016-8b98-3ef4a655472b/projected_PCA/2e22412f-42b5-4c44-bed8-98895a976452/call-run_pca_projected/merged_proj_pca.sscore')
+# table_pipe <- gsutil_pipe(file_name, "rb")
+# df <- read_tsv(table_pipe,
+#                  col_types = cols(subject_id="c"),
+#                  guess_max=100000,
+#                  show_col_types=TRUE)
+# close(table_pipe)
+# write_tsv(df, file = "proj_pca.sscore")
+# gsutil_cp("proj_pca.sscore", file.path(avbucket(), "test_data/"))
+# 
+# 
+# file_name <- as.character('gs://fc-secure-1019059d-d48d-4593-ad86-11fcab5fb34f/submissions/acbc5e5d-fba1-4866-a41a-bf5f94488ddd/create_pca_projection/977df9e3-6bd0-45ee-b71c-9203c949bf7c/call-make_pca_loadings/merged_unrel_snp_loadings.acount')
+# table_pipe <- gsutil_pipe(file_name, "rb")
+# df <- read_tsv(table_pipe,
+#                  col_types = cols(subject_id="c"),
+#                  guess_max=100000,
+#                  show_col_types=TRUE)
+# close(table_pipe)
+# write_tsv(df, file = "merged_unrel_snp_loadings.acount")
+# gsutil_cp("merged_unrel_snp_loadings.acount", file.path(avbucket(), "test_data/"))
+# 
+# 
+# file_name <- as.character('gs://fc-secure-1019059d-d48d-4593-ad86-11fcab5fb34f/submissions/acbc5e5d-fba1-4866-a41a-bf5f94488ddd/create_pca_projection/977df9e3-6bd0-45ee-b71c-9203c949bf7c/call-make_pca_loadings/merged_unrel_snp_loadings.eigenvec.allele')
+# table_pipe <- gsutil_pipe(file_name, "rb")
+# df <- read_tsv(table_pipe,
+#                  col_types = cols(subject_id="c"),
+#                  guess_max=100000,
+#                  show_col_types=TRUE)
+# close(table_pipe)
+# write_tsv(df, file = "merged_unrel_snp_loadings.eigenvec.allele")
+# gsutil_cp("merged_unrel_snp_loadings.eigenvec.allele", file.path(avbucket(), "test_data/"))
+```
+
+```{r}
+# temp <- read_tsv("proj_pca.sscore")
+# 
+# proj_groups_file <- tibble(
+#   subject_id = temp$`#IID`,
+#   # group = sample(x = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"), size = length(temp$`#IID`), replace = TRUE)
+#   # group = sample(x = c("A"), size = length(temp$`#IID`), replace = TRUE)
+#   group = sample(x = c("A", "B", "C", "D"), size = length(temp$`#IID`), replace = TRUE)
+# )
+# 
+# write_tsv(proj_groups_file, "test_data/proj_groups_file.tsv")
+# gsutil_cp("test_data/proj_groups_file.tsv", file.path(avbucket(), "test_data/"))
+```
+

@@ -1,0 +1,5 @@
+FROM ghcr.io/anvilproject/anvil-rstudio-bioconductor:3.17.1
+
+RUN Rscript -e 'install.packages(c("argparser", "GGally"), repos="https://cloud.r-project.org")'
+RUN cd /usr/local && \
+    git clone -b pca_plots https://github.com/PRIMED-Ancestry-Inference/PCA_projection.git
