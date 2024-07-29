@@ -2,13 +2,14 @@ version 1.0
 
 import "variant_filtering.wdl" as variant_tasks
 import "file_tasks.wdl" as file_tasks
-import "pca_tasks.wdl" as pca_tasks
+import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/plink2_pgen2bed.wdl" as pgen_conversion
+import "https://raw.githubusercontent.com/broadinstitute/palantir-workflows/main/ImputationPipeline/PCATasks.wdl" as pca_tasks
 import "pca_plots.wdl" as pca_plots
 
 workflow projected_PCA {
 	input {
 		File ref_loadings
-		File ref_freqs
+		File ref_meansd
 		File? ref_pcs
 		File? ref_groups
 		File? groups_file
@@ -51,58 +52,61 @@ workflow projected_PCA {
 			min_overlap = min_overlap
 	}
 
-	call pca_tasks.run_pca_projected {
+	call pgen_conversion.pgen2bed {
 		input:
 			pgen = final_pgen,
 			pvar = final_pvar,
-			psam = final_psam,
-			loadings = ref_loadings,
-			freq_file = ref_freqs,
-			id_col = identifyColumns.id_col,
-			allele_col = identifyColumns.allele_col,
-			pc_col_first = identifyColumns.pc_col_first,
-			pc_col_last = identifyColumns.pc_col_last
+			psam = final_psam
 	}
 
-	call pca_plots.run_pca_plots {
-		input: 
-			data_file = run_pca_projected.projection_file, 
-			groups_file = groups_file
+	call pca_tasks.ProjectArray {
+		input:
+			bed = pgen2bed.out_bed,
+			bim = pgen2bed.out_bim,
+			fam = pgen2bed.out_fam,
+			pc_loadings = ref_loadings,
+			pc_meansd = ref_meansd,
+			basename = basename(pgen2bed.out_bed, ".bed")
 	}
 
-	# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
-	if (defined(ref_pcs)) {
+	# call pca_plots.run_pca_plots {
+	# 	input: 
+	# 		data_file = run_pca_projected.projection_file, 
+	# 		groups_file = groups_file
+	# }
 
-		# need this because ref_pcs is optional but input to concatenateFiles is required
-		File ref_pcs1 = select_first([ref_pcs, ""])
+	# # If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
+	# if (defined(ref_pcs)) {
 
-		call concatenateFiles {
-			input: 
-				ref_pcs = ref_pcs1,
-				ref_groups = ref_groups,
-				projection_file = run_pca_projected.projection_file
-		}
+	# 	# need this because ref_pcs is optional but input to concatenateFiles is required
+	# 	File ref_pcs1 = select_first([ref_pcs, ""])
 
-		call pca_plots.run_pca_plots as run_pca_plots_ref {
-			input: 
-				data_file = concatenateFiles.merged_pcs,
-				groups_file = concatenateFiles.merged_groups,
-				colormap = concatenateFiles.colormap
-		}
-	}
+	# 	call concatenateFiles {
+	# 		input: 
+	# 			ref_pcs = ref_pcs1,
+	# 			ref_groups = ref_groups,
+	# 			projection_file = run_pca_projected.projection_file
+	# 	}
+
+	# 	call pca_plots.run_pca_plots as run_pca_plots_ref {
+	# 		input: 
+	# 			data_file = concatenateFiles.merged_pcs,
+	# 			groups_file = concatenateFiles.merged_groups,
+	# 			colormap = concatenateFiles.colormap
+	# 	}
+	# }
 
 	output {
-		File projection_file = run_pca_projected.projection_file
-		File projection_log = run_pca_projected.projection_log
+		File projection_file = ProjectArray.projections
 		Float overlap = checkOverlap.overlap
-		File pca_plots_pc12 = run_pca_plots.pca_plots_pc12
-		Array[File] pca_plots_pairs = run_pca_plots.pca_plots_pairs
-		File pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
-		File pca_plots = run_pca_plots.pca_plots
-		File? pca_plots_pc12_ref = run_pca_plots_ref.pca_plots_pc12
-		Array[File]? pca_plots_pairs_ref = run_pca_plots_ref.pca_plots_pairs
-		File? pca_plots_parcoord_ref = run_pca_plots_ref.pca_plots_parcoord
-		File? pca_plots_ref = run_pca_plots_ref.pca_plots
+		# File pca_plots_pc12 = run_pca_plots.pca_plots_pc12
+		# Array[File] pca_plots_pairs = run_pca_plots.pca_plots_pairs
+		# File pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
+		# File pca_plots = run_pca_plots.pca_plots
+		# File? pca_plots_pc12_ref = run_pca_plots_ref.pca_plots_pc12
+		# Array[File]? pca_plots_pairs_ref = run_pca_plots_ref.pca_plots_pairs
+		# File? pca_plots_parcoord_ref = run_pca_plots_ref.pca_plots_parcoord
+		# File? pca_plots_ref = run_pca_plots_ref.pca_plots
 	}
 
 	meta {
