@@ -67,7 +67,7 @@ workflow projected_PCA {
 
 	call pca_plots.run_pca_plots {
 		input: 
-			data_file = run_pca_projected.projection_file, 
+			data_file = ProjectArray.projections, 
 			groups_file = groups_file
 	}
 
@@ -81,7 +81,7 @@ workflow projected_PCA {
 			input: 
 				ref_pcs = ref_pcs1,
 				ref_groups = ref_groups,
-				projection_file = run_pca_projected.projection_file
+				projection_file = ProjectArray.projections
 		}
 
 		call pca_plots.run_pca_plots as run_pca_plots_ref {

@@ -96,7 +96,7 @@ workflow create_pca_projection {
 
 	call pca_plots.run_pca_plots {
 		input: 
-			data_file = run_pca_projected.projection_file, 
+			data_file = PerformPCA.pcs, 
 			groups_file = groups_file
 	}
 
