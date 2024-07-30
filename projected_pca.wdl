@@ -49,7 +49,8 @@ workflow projected_PCA {
 	#check for overlap, if overlap is less than threshold, stop
 	call checkOverlap {
 		input:
-			variant_file = ref_loadings,
+			ref_loadings = ref_loadings,
+			ref_meansd = ref_meansd,
 			bim = pgen2bed.out_bim,
 			min_overlap = min_overlap
 	}
@@ -59,8 +60,8 @@ workflow projected_PCA {
 			bed = pgen2bed.out_bed,
 			bim = pgen2bed.out_bim,
 			fam = pgen2bed.out_fam,
-			pc_loadings = checkOverlap.subset_variant_file,
-			pc_meansd = ref_meansd,
+			pc_loadings = checkOverlap.subset_loadings,
+			pc_meansd = checkOverlap.subset_meansd,
 			basename = basename(pgen2bed.out_bed, ".bed")
 	}
 
@@ -114,7 +115,8 @@ workflow projected_PCA {
 
 task checkOverlap {
 	input {
-		File variant_file
+		File ref_loadings
+		File ref_meansd
 		File bim
 		Float min_overlap
 	}
@@ -124,9 +126,12 @@ task checkOverlap {
 	library(dplyr); \
 		library(readr); \
 		bim <- read_tsv('~{bim}', col_types='-c----', col_names='SNP'); \
-		loadings <- read_tsv('~{variant_file}'); \
+		loadings <- read_tsv('~{ref_loadings}'); \
 		new_loadings <- inner_join(bim, loadings); \
-		write_tsv(new_loadings, 'subset_variant_file.txt'); \
+		write_tsv(new_loadings, 'subset_loadings.txt'); \
+		meansd <- read_tsv('{ref_meansd}'); \
+		new_meansd <- inner_join(bim, meansd); \
+		write_tsv(new_meansd, 'subset_meansd.txt'); \
 		proportion <- nrow(new_loadings) / nrow(loadings); \
 		prop_string <- format(proportion, digits=3); \
 		writeLines(prop_string, 'overlap.txt'); \
@@ -137,7 +142,8 @@ task checkOverlap {
 
 	output {
 		Float overlap = read_float("overlap.txt")
-		File subset_variant_file = "subset_variant_file.txt"
+		File subset_loadings = "subset_loadings.txt"
+		File subset_meansd = "subset_meansd.txt"
 	}
 
 	runtime {
