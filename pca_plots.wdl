@@ -48,6 +48,6 @@ task run_pca_plots {
     }
 
     runtime{
-        docker: "uwgac/pca_projection:0.1.0"
+        docker: "uwgac/pca_projection:0.2.0"
     }
 }
