@@ -41,9 +41,9 @@ num_pcs <- length(pc_columns)
 # Merge projection file with groups
 if(!is.na(groups_file)) {
     groups_dat <- as.data.frame(read_tsv(groups_file, col_names=TRUE, col_types="cc"))
-    groups_dat$`#IID` <- as.character(groups_dat$subject)
+    groups_dat$IID <- as.character(groups_dat$subject)
     
-    dat <- merge(dat, groups_dat, by = "#IID", all.x = TRUE)
+    dat <- merge(dat, groups_dat, by = "IID", all.x = TRUE)
 } else {
     dat$group <- "NA"
 }
@@ -91,14 +91,14 @@ dat <- dat %>% select(
 ```{r PC1 PC2 Plots, fig.dim=c(7,5)}
 # PC 1 and PC 2
 if(has_colormap) {
-  p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
+  p <- ggplot(dat, aes(PC1, PC2, color=group)) +
     geom_point(alpha=0.5) +
     scale_color_manual(values = setNames(colormap$color, colormap$group)) + 
     labs(color = "Group") + # Legend title
     theme_minimal() +  # Minimal theme for simplicity
     theme(legend.position = "right")  # Legend position
 } else {
-  p <- ggplot(dat, aes(PC1_AVG, PC2_AVG, color=group)) +
+  p <- ggplot(dat, aes(PC1, PC2, color=group)) +
     geom_point(alpha=0.5)
 }
 
