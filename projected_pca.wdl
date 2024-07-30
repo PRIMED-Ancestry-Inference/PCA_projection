@@ -129,7 +129,7 @@ task checkOverlap {
 		loadings <- read_tsv('~{ref_loadings}'); \
 		new_loadings <- inner_join(bim, loadings); \
 		write_tsv(new_loadings, 'subset_loadings.txt'); \
-		meansd <- read_tsv('{ref_meansd}'); \
+		meansd <- read_tsv('~{ref_meansd}'); \
 		new_meansd <- inner_join(bim, meansd); \
 		write_tsv(new_meansd, 'subset_meansd.txt'); \
 		proportion <- nrow(new_loadings) / nrow(loadings); \
