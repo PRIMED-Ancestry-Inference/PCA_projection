@@ -94,11 +94,11 @@ workflow create_pca_projection {
 			basename = basename(pgen2bed.out_bed, ".bed")
 	}
 
-	# call pca_plots.run_pca_plots {
-	# 	input: 
-	# 		data_file = run_pca_projected.projection_file, 
-	# 		groups_file = groups_file
-	# }
+	call pca_plots.run_pca_plots {
+		input: 
+			data_file = run_pca_projected.projection_file, 
+			groups_file = groups_file
+	}
 
 	output {
 		File pcs = PerformPCA.pcs
@@ -107,10 +107,10 @@ workflow create_pca_projection {
 		File mean_sd = PerformPCA.mean_sd
 		File eigenvectors = PerformPCA.eigenvectors
 		File eigenvalues = PerformPCA.eigenvalues
-		#File? pca_plots_pc12 = run_pca_plots.pca_plots_pc12
-		#Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
-		#File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
-		#File? pca_plots = run_pca_plots.pca_plots
+		File? pca_plots_pc12 = run_pca_plots.pca_plots_pc12
+		Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
+		File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
+		File? pca_plots = run_pca_plots.pca_plots
 	}
 
 	meta {

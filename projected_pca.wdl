@@ -65,44 +65,44 @@ workflow projected_PCA {
 			basename = basename(pgen2bed.out_bed, ".bed")
 	}
 
-	# call pca_plots.run_pca_plots {
-	# 	input: 
-	# 		data_file = run_pca_projected.projection_file, 
-	# 		groups_file = groups_file
-	# }
+	call pca_plots.run_pca_plots {
+		input: 
+			data_file = run_pca_projected.projection_file, 
+			groups_file = groups_file
+	}
 
-	# # If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
-	# if (defined(ref_pcs)) {
+	# If ref_pcs is provided, run concatenateFiles task then rerun the plotting script with output
+	if (defined(ref_pcs)) {
 
-	# 	# need this because ref_pcs is optional but input to concatenateFiles is required
-	# 	File ref_pcs1 = select_first([ref_pcs, ""])
+		# need this because ref_pcs is optional but input to concatenateFiles is required
+		File ref_pcs1 = select_first([ref_pcs, ""])
 
-	# 	call concatenateFiles {
-	# 		input: 
-	# 			ref_pcs = ref_pcs1,
-	# 			ref_groups = ref_groups,
-	# 			projection_file = run_pca_projected.projection_file
-	# 	}
+		call concatenateFiles {
+			input: 
+				ref_pcs = ref_pcs1,
+				ref_groups = ref_groups,
+				projection_file = run_pca_projected.projection_file
+		}
 
-	# 	call pca_plots.run_pca_plots as run_pca_plots_ref {
-	# 		input: 
-	# 			data_file = concatenateFiles.merged_pcs,
-	# 			groups_file = concatenateFiles.merged_groups,
-	# 			colormap = concatenateFiles.colormap
-	# 	}
-	# }
+		call pca_plots.run_pca_plots as run_pca_plots_ref {
+			input: 
+				data_file = concatenateFiles.merged_pcs,
+				groups_file = concatenateFiles.merged_groups,
+				colormap = concatenateFiles.colormap
+		}
+	}
 
 	output {
 		File projection_file = ProjectArray.projections
 		Float overlap = checkOverlap.overlap
-		# File pca_plots_pc12 = run_pca_plots.pca_plots_pc12
-		# Array[File] pca_plots_pairs = run_pca_plots.pca_plots_pairs
-		# File pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
-		# File pca_plots = run_pca_plots.pca_plots
-		# File? pca_plots_pc12_ref = run_pca_plots_ref.pca_plots_pc12
-		# Array[File]? pca_plots_pairs_ref = run_pca_plots_ref.pca_plots_pairs
-		# File? pca_plots_parcoord_ref = run_pca_plots_ref.pca_plots_parcoord
-		# File? pca_plots_ref = run_pca_plots_ref.pca_plots
+		File pca_plots_pc12 = run_pca_plots.pca_plots_pc12
+		Array[File] pca_plots_pairs = run_pca_plots.pca_plots_pairs
+		File pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
+		File pca_plots = run_pca_plots.pca_plots
+		File? pca_plots_pc12_ref = run_pca_plots_ref.pca_plots_pc12
+		Array[File]? pca_plots_pairs_ref = run_pca_plots_ref.pca_plots_pairs
+		File? pca_plots_parcoord_ref = run_pca_plots_ref.pca_plots_parcoord
+		File? pca_plots_ref = run_pca_plots_ref.pca_plots
 	}
 
 	meta {
