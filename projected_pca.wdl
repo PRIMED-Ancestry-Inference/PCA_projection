@@ -173,6 +173,6 @@ task concatenateFiles {
 	}
 
 	runtime{
-		 docker: "uwgac/pca_projection:0.1.0"
+		 docker: "uwgac/pca_projection:0.2.0"
 	}
 }
