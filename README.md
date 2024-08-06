@@ -26,8 +26,12 @@ Outputs:
 
 output | description
 --- | ---
-var_freq_counts | counts of variant frequencies
-snp_loadings | SNP loadings
+pcs | PCs for samples used to create projection
+pc_variance | variance explained by each PC
+pc_loadings | SNP loadings
+mean_sd | mean and SD for each variant in SNP loadings file
+eigenvectors | eigenvectors
+eigenvalues | eigenvalues
 loadings_log | log from running plink2 --pca
 pca_projection | PCs from running PCA on this dataset with calculated loadings
 projection_log | log from running plink2 --score
@@ -46,8 +50,8 @@ Inputs:
 
 input | description
 --- | ---
-ref_loadings | File with SNP loadings (e.g. snp_loadings output from create_pca_projection)
-ref_freqs | File with variant frequencies (e.g. var_freq_counts output from create_pca_projection)
+ref_loadings | File with SNP loadings (e.g. pc_loadings output from create_pca_projection)
+ref_meansd | File with variant mean and SD (e.g. mean_sd output from create_pca_projection)
 ref_pcs | PCs from running PCA on reference dataset to create joint plots (optional)
 ref_groups | Two-column tsv file of subject_id and group from reference dataset, used to label plots (optional)
 groups_file | Two-column tsv file of subject_id and group from sample dataset, used to label plots (optional)
