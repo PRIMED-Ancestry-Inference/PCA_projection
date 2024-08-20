@@ -146,6 +146,30 @@ if(has_colormap) {
     guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
     xlab("PC") +
     ylab("")
+  
+  ggsave("out_file_parcoord.png", plot = p, width = 10, height = 5)
+  print(p)
+  
+  if("projected_samples" %in% colormap$group){
+    temp_colormap <- tibble(
+      group = c(colormap$group[colormap$group != "projected_samples"], "projected_samples"),
+      color = c(rep("#666666",length(colormap$group) - 1), "#1f78b4"),
+    )
+
+    dat$order <- ifelse(dat$group == "projected_samples", '1', '0')
+    dat <- arrange(dat, order) # arrange so that the projected samples are last
+
+    p <- ggparcoord(dat,
+                    columns = 1:num_pcs,
+                    groupColumn = "group",
+                    alphaLines = 0.5,
+                    scale = "uniminmax") +
+      scale_color_manual(values = temp_colormap$color, breaks = temp_colormap$group) +
+      xlab("PC") +
+      ylab("")
+    
+    print(p)
+  }
 } else {
   p <- ggparcoord(dat,
                 columns = 1:num_pcs,
@@ -155,11 +179,10 @@ if(has_colormap) {
   guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
   xlab("PC") +
   ylab("")
+  
+  ggsave("out_file_parcoord.png", plot = p, width = 10, height = 5)
+  print(p)
 }
-
-ggsave("out_file_parcoord.png", plot = p, width = 10, height = 5)
-
-print(p)
 ```
 
 
