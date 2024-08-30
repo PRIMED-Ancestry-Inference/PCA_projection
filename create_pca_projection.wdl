@@ -4,13 +4,14 @@ import "variant_filtering.wdl" as variant_tasks
 import "sample_filtering.wdl" as sample_tasks
 import "file_tasks.wdl" as file_tasks
 import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/plink2_pgen2bed.wdl" as pgen_conversion
-import "https://raw.githubusercontent.com/PRIMED-Ancestry-Inference/palantir-workflows/memory/ImputationPipeline/PCATasks.wdl" as pca_tasks
+import "https://raw.githubusercontent.com/PRIMED-Ancestry-Inference/palantir-workflows/set_pcs/ImputationPipeline/PCATasks.wdl" as pca_tasks
 import "pca_plots.wdl" as pca_plots
 
 workflow create_pca_projection {
 	input{ 
 		Array[File] vcf
 		File ref_variants
+		Int? n_pcs
 		Boolean prune_variants = true
 		Boolean remove_relateds = true
 		Float? min_maf
@@ -91,7 +92,8 @@ workflow create_pca_projection {
 			bed = pgen2bed.out_bed,
 			bim = pgen2bed.out_bim,
 			fam = pgen2bed.out_fam,
-			basename = basename(pgen2bed.out_bed, ".bed")
+			basename = basename(pgen2bed.out_bed, ".bed"),
+			n_pcs = n_pcs
 	}
 
 	call pca_plots.run_pca_plots {
