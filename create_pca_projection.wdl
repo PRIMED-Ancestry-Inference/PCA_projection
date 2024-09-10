@@ -18,7 +18,7 @@ workflow create_pca_projection {
 		Float? max_kinship_coefficient
 		Int? window_size
 		Int? shift_size
-		Int? r2_threshold
+		Float? r2_threshold
 		File? groups_file
 	}
 
