@@ -1,6 +1,7 @@
 {
-    "create_pca_projection.ref_variants": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/phase3_variants_10M_sample.txt",
+    "create_pca_projection.ref_variants": "gs://fc-8dc38d1d-c3f4-46de-8d4c-176967d6663e/selected_variants_maf01_bypop.txt",
     "create_pca_projection.min_maf": 0.01,
+    "create_pca_projection.groups_file": "gs://fc-8dc38d1d-c3f4-46de-8d4c-176967d6663e/1000G_group_file_superpopulation.txt",
     "create_pca_projection.vcf": [
         "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
         "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr2.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",

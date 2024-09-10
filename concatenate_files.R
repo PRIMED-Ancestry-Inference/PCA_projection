@@ -8,7 +8,7 @@ argp <- add_argument(parser = argp,
                      arg = "--ref_pcs",
                      type = "character", 
                      nargs = 1, 
-                     help="Tab-delimited file with `#IID` column and PCs for reference data")
+                     help="Tab-delimited file with IID column and PCs for reference data")
 argp <- add_argument(parser = argp, 
                      arg = "--ref_groups",
                      type = "character", 
@@ -18,7 +18,7 @@ argp <- add_argument(parser = argp,
                      arg = "--projection_file",
                      type = "character", 
                      nargs = 1, 
-                     help="Tab-delimited file with `#IID` column and PCs for sample data")
+                     help="Tab-delimited file with IID column and PCs for sample data")
 
 argv <- parse_args(argp)
 ref_pcs <- argv$ref_pcs
@@ -30,15 +30,15 @@ projection_file <- as.data.frame(read_tsv(projection_file))
 
 if(is.na(ref_pcs)) {
   merged_pcs <- projection_file
-  merged_groups <- data.frame(subject_id = projection_file$`#IID`, group = rep("projected_samples", nrow(projection_file)))
+  merged_groups <- data.frame(subject_id = projection_file$IID, group = rep("projected_samples", nrow(projection_file)))
 } else {
   
   # Read ref data 
   ref_pcs <- as.data.frame(read_tsv(ref_pcs))
   
   # Cast IID as character
-  ref_pcs$`#IID` <- as.character(ref_pcs$`#IID`)
-  projection_file$`#IID` <- as.character(projection_file$`#IID`)
+  ref_pcs$IID <- as.character(ref_pcs$IID)
+  projection_file$IID <- as.character(projection_file$IID)
   
   # Concatenate files
   merged_pcs <- rbind(ref_pcs, projection_file)
@@ -70,7 +70,7 @@ if(is.na(ref_pcs)) {
       group = c(groups, "projected_samples"),
       color = c(palette[1:n_groups], '#666666')
     )
-    df <- data.frame(subject_id = projection_file$`#IID`, group = rep("projected_samples", nrow(projection_file)))
+    df <- data.frame(subject_id = projection_file$IID, group = rep("projected_samples", nrow(projection_file)))
     colnames(df) <- c("subject_id", "group")
     
     merged_groups <- rbind(ref_groups, df)
@@ -81,8 +81,8 @@ if(is.na(ref_pcs)) {
       color = c('#1f78b4', '#666666')
     )
     
-    merged_groups <- rbind(data.frame(subject_id = ref_pcs$`#IID`, group = rep("ref_samples", nrow(ref_pcs))), 
-                           data.frame(subject_id = projection_file$`#IID`, group = rep("projected_samples", nrow(projection_file))), 
+    merged_groups <- rbind(data.frame(subject_id = ref_pcs$IID, group = rep("ref_samples", nrow(ref_pcs))), 
+                           data.frame(subject_id = projection_file$IID, group = rep("projected_samples", nrow(projection_file))), 
                            by = "subject_id")
     colnames(merged_groups) <- c("subject_id", "group")
   }

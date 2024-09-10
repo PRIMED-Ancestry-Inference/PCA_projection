@@ -1,6 +1,8 @@
 {
-    "projected_PCA.ref_loadings": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/submissions/37a370c9-946f-4160-8351-c0b51cf4c32e/create_pca_projection/c0fda2bd-ab4b-4237-9946-f4116acf676d/call-make_pca_loadings/merged_unrel_snp_loadings.eigenvec.allele",
-    "projected_PCA.ref_freqs": "gs://fc-077a4a13-7468-47d9-9c9c-7ec0559d1402/submissions/37a370c9-946f-4160-8351-c0b51cf4c32e/create_pca_projection/c0fda2bd-ab4b-4237-9946-f4116acf676d/call-make_pca_loadings/merged_unrel_snp_loadings.acount",
+    "projected_PCA.ref_loadings": "gs://fc-8dc38d1d-c3f4-46de-8d4c-176967d6663e/submissions/008b9bb2-58f3-4586-95e4-eff53ebb589a/create_pca_projection/930cf42b-c58b-4b3c-8ef6-c07376423dd2/call-PerformPCA/merged_unrel.pc.loadings",
+    "projected_PCA.ref_meansd": "gs://fc-8dc38d1d-c3f4-46de-8d4c-176967d6663e/submissions/008b9bb2-58f3-4586-95e4-eff53ebb589a/create_pca_projection/930cf42b-c58b-4b3c-8ef6-c07376423dd2/call-PerformPCA/merged_unrel.pc.meansd",
+    "projected_PCA.ref_pcs": "gs://fc-8dc38d1d-c3f4-46de-8d4c-176967d6663e/submissions/008b9bb2-58f3-4586-95e4-eff53ebb589a/create_pca_projection/930cf42b-c58b-4b3c-8ef6-c07376423dd2/call-PerformPCA/merged_unrel.pc",
+    "projected_PCA.ref_groups": "gs://fc-8dc38d1d-c3f4-46de-8d4c-176967d6663e/1000G_group_file_superpopulation.txt",
     "projected_PCA.vcf": [
         "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",
         "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf/ALL.chr2.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.bgz",

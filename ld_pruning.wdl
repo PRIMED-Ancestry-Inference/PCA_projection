@@ -12,7 +12,7 @@ workflow LD_pruning {
         Boolean? snps_only
         Int? window_size
         Int? shift_size
-        Int? r2_threshold
+        Float? r2_threshold
     }
 
     scatter (file in vcf) {

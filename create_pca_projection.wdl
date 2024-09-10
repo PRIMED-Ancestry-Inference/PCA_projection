@@ -3,20 +3,22 @@ version 1.0
 import "variant_filtering.wdl" as variant_tasks
 import "sample_filtering.wdl" as sample_tasks
 import "file_tasks.wdl" as file_tasks
-import "pca_tasks.wdl" as pca_tasks
+import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/plink2_pgen2bed.wdl" as pgen_conversion
+import "https://raw.githubusercontent.com/PRIMED-Ancestry-Inference/palantir-workflows/main/ImputationPipeline/PCATasks.wdl" as pca_tasks
 import "pca_plots.wdl" as pca_plots
 
 workflow create_pca_projection {
 	input{ 
 		Array[File] vcf
 		File ref_variants
+		Int? n_pcs
 		Boolean prune_variants = true
 		Boolean remove_relateds = true
 		Float? min_maf
 		Float? max_kinship_coefficient
 		Int? window_size
 		Int? shift_size
-		Int? r2_threshold
+		Float? r2_threshold
 		File? groups_file
 	}
 
@@ -78,38 +80,35 @@ workflow create_pca_projection {
 	File final_pvar = select_first([removeRelateds.out_pvar, merged_pvar])
 	File final_psam = select_first([removeRelateds.out_psam, merged_psam])	
 
-	call pca_tasks.make_pca_loadings {
+	call pgen_conversion.pgen2bed {
 		input:
 			pgen = final_pgen,
 			pvar = final_pvar,
 			psam = final_psam
 	}
 
-	call pca_tasks.run_pca_projected {
+	call pca_tasks.PerformPCA {
 		input:
-			pgen = merged_pgen,
-			pvar = merged_pvar,
-			psam = merged_psam,
-			loadings = make_pca_loadings.snp_loadings,
-			freq_file = make_pca_loadings.var_freq_counts,
-			id_col = 2,
-			allele_col = 5,
-			pc_col_first = 6,
-			pc_col_last = 15
+			bed = pgen2bed.out_bed,
+			bim = pgen2bed.out_bim,
+			fam = pgen2bed.out_fam,
+			basename = basename(pgen2bed.out_bed, ".bed"),
+			n_pcs = n_pcs
 	}
 
 	call pca_plots.run_pca_plots {
 		input: 
-			data_file = run_pca_projected.projection_file, 
+			data_file = PerformPCA.pcs, 
 			groups_file = groups_file
 	}
 
 	output {
-		File var_freq_counts = make_pca_loadings.var_freq_counts
-		File snp_loadings =  make_pca_loadings.snp_loadings
-		File loadings_log =  make_pca_loadings.projection_log
-		File pca_projection = run_pca_projected.projection_file
-		File projection_log = run_pca_projected.projection_log
+		File pcs = PerformPCA.pcs
+		File pc_variance = PerformPCA.pc_variance
+		File pc_loadings = PerformPCA.pc_loadings
+		File mean_sd = PerformPCA.mean_sd
+		File eigenvectors = PerformPCA.eigenvectors
+		File eigenvalues = PerformPCA.eigenvalues
 		File? pca_plots_pc12 = run_pca_plots.pca_plots_pc12
 		Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
 		File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
@@ -117,7 +116,7 @@ workflow create_pca_projection {
 	}
 
 	meta {
-		author: "Jonathan Shortt, Stephanie Gogarten"
+		author: "Jonathan Shortt, Stephanie Gogarten, Amy Watt"
 		email: "jonathan.shortt@cuanschutz.edu"
 		description: "This workflow is used to create a pca projection from a genetic reference dataset (in VCF format). First, the reference data is subsetted to include only sites in common with a provided reference variant file (intended to contain only variants that one would expect to find in all downstream datsets that will be projected using loadings created in this worflow (e.g., a list of common sites that are easily imputed in TOPMed)), and then pruned for linkage equilibrium. The related individuals are removed. Then PCA is run on the dataset."
 	}

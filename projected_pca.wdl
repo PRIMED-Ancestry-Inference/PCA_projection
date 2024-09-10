@@ -2,13 +2,14 @@ version 1.0
 
 import "variant_filtering.wdl" as variant_tasks
 import "file_tasks.wdl" as file_tasks
-import "pca_tasks.wdl" as pca_tasks
+import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/plink2_pgen2bed.wdl" as pgen_conversion
+import "https://raw.githubusercontent.com/broadinstitute/palantir-workflows/main/ImputationPipeline/PCATasks.wdl" as pca_tasks
 import "pca_plots.wdl" as pca_plots
 
 workflow projected_PCA {
 	input {
 		File ref_loadings
-		File ref_freqs
+		File ref_meansd
 		File? ref_pcs
 		File? ref_groups
 		File? groups_file
@@ -16,17 +17,12 @@ workflow projected_PCA {
 		Float min_overlap = 0.95
 	}
 
-	call identifyColumns {
-		input:
-			ref_loadings = ref_loadings
-	}
-
 	scatter (file in vcf) {
 		call variant_tasks.subsetVariants {
 			input:
 				vcf = file,
 				variant_file = ref_loadings,
-				variant_id_col = identifyColumns.id_col
+				variant_id_col = 1
 		}
 	}
 
@@ -43,30 +39,35 @@ workflow projected_PCA {
 	File final_pvar = select_first([mergeFiles.out_pvar, subsetVariants.subset_pvar[0]])
 	File final_psam = select_first([mergeFiles.out_psam, subsetVariants.subset_psam[0]])
 
-	#check for overlap, if overlap is less than threshold, stop
-	call checkOverlap {
-		input:
-			variant_file = ref_loadings,
-			pvar = final_pvar,
-			min_overlap = min_overlap
-	}
-
-	call pca_tasks.run_pca_projected {
+	call pgen_conversion.pgen2bed {
 		input:
 			pgen = final_pgen,
 			pvar = final_pvar,
-			psam = final_psam,
-			loadings = ref_loadings,
-			freq_file = ref_freqs,
-			id_col = identifyColumns.id_col,
-			allele_col = identifyColumns.allele_col,
-			pc_col_first = identifyColumns.pc_col_first,
-			pc_col_last = identifyColumns.pc_col_last
+			psam = final_psam
+	}
+
+	#check for overlap, if overlap is less than threshold, stop
+	call checkOverlap {
+		input:
+			ref_loadings = ref_loadings,
+			ref_meansd = ref_meansd,
+			bim = pgen2bed.out_bim,
+			min_overlap = min_overlap
+	}
+
+	call pca_tasks.ProjectArray {
+		input:
+			bed = pgen2bed.out_bed,
+			bim = pgen2bed.out_bim,
+			fam = pgen2bed.out_fam,
+			pc_loadings = checkOverlap.subset_loadings,
+			pc_meansd = checkOverlap.subset_meansd,
+			basename = basename(pgen2bed.out_bed, ".bed")
 	}
 
 	call pca_plots.run_pca_plots {
 		input: 
-			data_file = run_pca_projected.projection_file, 
+			data_file = ProjectArray.projections, 
 			groups_file = groups_file
 	}
 
@@ -80,7 +81,7 @@ workflow projected_PCA {
 			input: 
 				ref_pcs = ref_pcs1,
 				ref_groups = ref_groups,
-				projection_file = run_pca_projected.projection_file
+				projection_file = ProjectArray.projections
 		}
 
 		call pca_plots.run_pca_plots as run_pca_plots_ref {
@@ -92,8 +93,7 @@ workflow projected_PCA {
 	}
 
 	output {
-		File projection_file = run_pca_projected.projection_file
-		File projection_log = run_pca_projected.projection_log
+		File projection_file = ProjectArray.projections
 		Float overlap = checkOverlap.overlap
 		File pca_plots_pc12 = run_pca_plots.pca_plots_pc12
 		Array[File] pca_plots_pairs = run_pca_plots.pca_plots_pairs
@@ -113,71 +113,41 @@ workflow projected_PCA {
 }
 
 
-task identifyColumns {
-	input {
-		File ref_loadings
-	}
-
-	command <<<
-		Rscript -e "\
-		dat <- readr::read_tsv('~{ref_loadings}', n_max=100)
-		writeLines(as.character(which(names(dat) == 'ID')), 'id_col.txt')
-		if (is.element('A1', names(dat))) allele_col <- 'A1' else allele_col <- 'ALT'
-		writeLines(as.character(which(names(dat) == allele_col)), 'allele_col.txt')
-		pc_cols <- grep('^PC', names(dat))
-		writeLines(as.character(pc_cols[1]), 'pc_col_first.txt')
-		writeLines(as.character(pc_cols[length(pc_cols)]), 'pc_col_last.txt')
-		"
-	>>>
-
-	output {
-		Int id_col = read_int("id_col.txt")
-		Int allele_col = read_int("allele_col.txt")
-		Int pc_col_first = read_int("pc_col_first.txt")
-		Int pc_col_last = read_int("pc_col_last.txt")
-	}
-
-	runtime {
-		docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
-	}
-}
-
-
 task checkOverlap {
 	input {
-		File variant_file
-		File pvar
+		File ref_loadings
+		File ref_meansd
+		File bim
 		Float min_overlap
 	}
 
 	command <<<
-		python3 <<CODE
-		import sys
-		def countLines (myfile):
-			line_count=0
-			with open(myfile, "r") as infp:
-				for line in infp:
-					if not (line.startswith("#")):
-						line_count=line_count + 1
-			return line_count
-		
-		loadings_count=countLines("~{variant_file}")
-		new_loadings_count=countLines("~{pvar}")
-		proportion=float(new_loadings_count)/loadings_count
-		min_prop = ~{min_overlap}
-		prop_string = "%.3f" % proportion
-		if proportion < min_prop:
-			sys.exit(f"Variant overlap of {prop_string} is less than minimum of {min_prop}")
-		print(prop_string)
-		CODE
+	Rscript -e "\
+	library(dplyr); \
+		library(readr); \
+		bim <- read_tsv('~{bim}', col_types='-c----', col_names='SNP'); \
+		loadings <- read_tsv('~{ref_loadings}'); \
+		new_loadings <- inner_join(bim, loadings); \
+		write_tsv(new_loadings, 'subset_loadings.txt'); \
+		meansd <- read_tsv('~{ref_meansd}'); \
+		new_meansd <- inner_join(bim, meansd); \
+		write_tsv(new_meansd, 'subset_meansd.txt'); \
+		proportion <- nrow(new_loadings) / nrow(loadings); \
+		prop_string <- format(proportion, digits=3); \
+		writeLines(prop_string, 'overlap.txt'); \
+		min_prop <- ~{min_overlap}; \
+		if (proportion < min_prop) stop(paste('Variant overlap of', prop_string, 'is less than minimum of', min_prop)); \
+		"
 	>>>
 
 	output {
-		Float overlap = read_float(stdout())
+		Float overlap = read_float("overlap.txt")
+		File subset_loadings = "subset_loadings.txt"
+		File subset_meansd = "subset_meansd.txt"
 	}
 
 	runtime {
-		docker: "us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian"
+		docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
 	}
 }
 
@@ -203,6 +173,6 @@ task concatenateFiles {
 	}
 
 	runtime{
-		 docker: "uwgac/pca_projection:0.1.0"
+		 docker: "uwgac/pca_projection:0.2.0"
 	}
 }
