@@ -144,6 +144,7 @@ if(has_colormap) {
                   scale = "uniminmax") +
     scale_color_manual(values = colormap$color, breaks = colormap$group) +
     guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
     xlab("PC") +
     ylab("")
   
@@ -165,6 +166,7 @@ if(has_colormap) {
                     alphaLines = 0.5,
                     scale = "uniminmax") +
       scale_color_manual(values = temp_colormap$color, breaks = temp_colormap$group) +
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
       xlab("PC") +
       ylab("")
     
@@ -176,9 +178,10 @@ if(has_colormap) {
                 groupColumn = group,
                 alphaLines = 0.5,
                 scale = "uniminmax") +
-  guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
-  xlab("PC") +
-  ylab("")
+    guides(colour=guide_legend(override.aes=list(alpha=1, size=2))) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) + 
+    xlab("PC") +
+    ylab("")
   
   ggsave("out_file_parcoord.png", plot = p, width = 10, height = 5)
   print(p)
