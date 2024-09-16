@@ -124,3 +124,27 @@ Outputs:
 output | description
 --- | ---
 maf_filtered_variants | Text file with variants that passed the MAF filter in any population.
+
+
+
+## pca_plots
+
+This workflow is uses a file with PCs to create pairs plots and parallel coordinate plots. 
+
+Inputs:
+
+input | description
+--- | ---
+data_file | PCs from running PCA (ie pcs from create_pca_projection or projection_file from projected_pca)
+groups_file | Two-column tsv file of subject_id and group, used to label plots (optional)
+colormap | Two-column tsv file of group and color, used to color plots (optional)
+n_pairs | number of PCs to use for pairs plots (default 10)
+
+Outputs:
+
+output | description
+--- | ---
+pca_plots_pc12 | png file of PC1 and PC2 scatterplot
+pca_plot_pairs | png file of pairwise PC scatterplots 
+pca_plots_parcoord | png file of parallel coordinates plot for PCs
+pca_plots | html file with PCA plots 
