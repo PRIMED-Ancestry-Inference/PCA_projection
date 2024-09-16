@@ -129,7 +129,7 @@ maf_filtered_variants | Text file with variants that passed the MAF filter in an
 
 ## pca_plots
 
-This workflow is uses a file with PCs to create pairs plots and parallel coordinate plots. 
+This workflow uses a file with PCs to create pairs plots and parallel coordinate plots. 
 
 Inputs:
 
