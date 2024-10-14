@@ -3,9 +3,10 @@ version 1.0
 task subsetVariants {
 	input {
 		File vcf
-		File? variant_file
-		Int? variant_id_col
+		File variant_file
+		Int variant_id_col = 1
 		Float? min_maf
+		Int genome_build = 38
 		Boolean snps_only = true
 		Boolean rm_dup = true
 		Int mem_gb = 8
@@ -18,11 +19,17 @@ task subsetVariants {
 	String maf = if(defined(min_maf)) then "--maf " + min_maf else ""
 
 	command <<<
-		#get a list of variant names in common between the two, save to extract.txt
-		if [ -f ~{variant_file} ]; then cut -f ~{variant_id_col} ~{variant_file} > extract.txt; fi
+		#get list of ranges to exclude
+		wget https://raw.githubusercontent.com/GrindeLab/PCA/refs/heads/main/data/highLD/exclude_b~{genome_build}.txt
+		cut -f 1,2,3 exclude_b~{genome_build}.txt > exclude.txt
+
+		#subset file with --extract extract.txt
+		cut -f ~{variant_id_col} ~{variant_file} > extract.txt
+
 		#subset file with --extract extract.txt
 		plink2 ~{prefix} ~{vcf} ~{maf} \
-			~{true="--extract extract.txt" false="" defined(variant_file)} \
+			--extract ~{variant_file} \
+			--exclude bed1 exclude.txt \
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
 			--output-chr chrM \
