@@ -4,7 +4,7 @@ Run PCA and project genotypes into PCA space using pre-made SNP loadings.
 
 ## create_pca_projection
 
-This workflow is used to create a pca projection from a genetic reference dataset (in VCF format). First, the reference data is subsetted to include only sites in common with a provided reference variant file (intended to contain only variants that one would expect to find in all downstream datsets that will be projected using loadings created in this worflow (e.g., a list of common sites that are easily imputed in TOPMed)), and then pruned for linkage equilibrium. The related individuals are removed. Then PCA is run on the dataset.
+This workflow is used to create a pca projection from a genetic reference dataset (in VCF format). First, the reference data is subsetted to include only sites in common with a provided reference variant file (intended to contain only variants that one would expect to find in all downstream datsets that will be projected using loadings created in this worflow (e.g., a list of common sites that are easily imputed in TOPMed)), and then pruned for linkage equilibrium. Regions in Table 1 of [Grinde et al 2024](https://www.biorxiv.org/content/10.1101/2024.04.02.587682v1) are excluded prior to LD pruning. Related individuals are removed. Then [FlashPCA](https://github.com/gabraham/flashpca) is run on the dataset.
 
 Inputs:
 
@@ -12,6 +12,8 @@ input | description
 --- | ---
 vcf | Array of VCF files (possibly split by chromosome)
 ref_variants | file with variants to use in the PCA calculation. The column with variant IDs should be labeled 'ID'.
+n_pcs | Number of PCs to return
+genome_build | Genome build for selecting regions to exclude. Allowed values are 38 (default), 37, 36
 prune_variants | Boolean for whether to do LD pruning on the variants (default true)
 min_maf | minimum MAF for variants to include (optional)
 remove_relateds | Boolean for whether to remove samples with relatedness above max_kinship_coefficient (default true)
