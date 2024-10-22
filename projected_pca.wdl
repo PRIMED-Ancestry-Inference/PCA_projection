@@ -119,25 +119,26 @@ task checkOverlap {
 		File ref_meansd
 		File bim
 		Float min_overlap
+		Int mem_gb = 8
 	}
 
 	command <<<
 	Rscript -e "\
 	library(dplyr); \
-		library(readr); \
-		bim <- read_tsv('~{bim}', col_types='-c----', col_names='SNP'); \
-		loadings <- read_tsv('~{ref_loadings}'); \
-		new_loadings <- inner_join(bim, loadings); \
-		write_tsv(new_loadings, 'subset_loadings.txt'); \
-		meansd <- read_tsv('~{ref_meansd}'); \
-		new_meansd <- inner_join(bim, meansd); \
-		write_tsv(new_meansd, 'subset_meansd.txt'); \
-		proportion <- nrow(new_loadings) / nrow(loadings); \
-		prop_string <- format(proportion, digits=3); \
-		writeLines(prop_string, 'overlap.txt'); \
-		min_prop <- ~{min_overlap}; \
-		if (proportion < min_prop) stop(paste('Variant overlap of', prop_string, 'is less than minimum of', min_prop)); \
-		"
+	library(readr); \
+	bim <- read_tsv('~{bim}', col_types='-c----', col_names='SNP'); \
+	loadings <- read_tsv('~{ref_loadings}'); \
+	new_loadings <- inner_join(bim, loadings); \
+	write_tsv(new_loadings, 'subset_loadings.txt'); \
+	meansd <- read_tsv('~{ref_meansd}'); \
+	new_meansd <- inner_join(bim, meansd); \
+	write_tsv(new_meansd, 'subset_meansd.txt'); \
+	proportion <- nrow(new_loadings) / nrow(loadings); \
+	prop_string <- format(proportion, digits=3); \
+	writeLines(prop_string, 'overlap.txt'); \
+	min_prop <- ~{min_overlap}; \
+	if (proportion < min_prop) stop(paste('Variant overlap of', prop_string, 'is less than minimum of', min_prop)); \
+	"
 	>>>
 
 	output {
@@ -148,6 +149,7 @@ task checkOverlap {
 
 	runtime {
 		docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
+		memory: mem_gb + " GB"
 	}
 }
 

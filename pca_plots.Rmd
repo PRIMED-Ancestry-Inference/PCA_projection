@@ -94,6 +94,7 @@ if(has_colormap) {
   p <- ggplot(dat, aes(PC1, PC2, color=group)) +
     geom_point(alpha=0.5) +
     scale_color_manual(values = setNames(colormap$color, colormap$group)) + 
+    guides(colour=guide_legend(override.aes=list(alpha=1))) + 
     labs(color = "Group") + # Legend title
     theme_minimal() +  # Minimal theme for simplicity
     theme(legend.position = "right")  # Legend position
