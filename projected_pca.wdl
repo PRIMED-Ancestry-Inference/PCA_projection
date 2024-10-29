@@ -17,12 +17,16 @@ workflow projected_PCA {
 		Float min_overlap = 0.95
 	}
 
+	call file_tasks.identifyColumns {
+		input:
+			ref_variants = ref_loadings
+	}
+
 	scatter (file in vcf) {
 		call variant_tasks.subsetVariants {
 			input:
 				vcf = file,
-				variant_file = ref_loadings,
-				variant_id_col = 1
+				variant_file = identifyColumns.id_file
 		}
 	}
 
