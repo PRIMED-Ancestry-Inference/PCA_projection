@@ -9,7 +9,7 @@ task identifyColumns {
 		Rscript -e "\
 		dat <- readr::read_tsv('~{ref_variants}', comment = '##', n_max=100); \
 		if (ncol(dat) == 1) id_col <- 1 else id_col <- which(names(dat) == 'ID'); \
-		system(paste('cut -f', id_col, '~{ref_variants} > variant_ids.txt'); \
+		system(paste('cut -f', id_col, '~{ref_variants} > variant_ids.txt')); \
 		"
 	>>>
 
