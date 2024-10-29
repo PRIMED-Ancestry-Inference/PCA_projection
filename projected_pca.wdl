@@ -20,7 +20,8 @@ workflow projected_PCA {
 
 	call file_tasks.identifyColumns {
 		input:
-			ref_variants = ref_loadings
+			ref_variants = ref_loadings,
+			id_column = "SNP"
 	}
 
 	scatter (file in vcf) {
