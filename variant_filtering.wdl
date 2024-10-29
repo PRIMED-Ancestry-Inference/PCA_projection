@@ -28,7 +28,7 @@ task subsetVariants {
 
 		#subset file with --extract extract.txt
 		plink2 ~{prefix} ~{vcf} ~{maf} \
-			--extract ~{variant_file} \
+			--extract extract.txt \
 			--exclude bed1 exclude.txt \
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \

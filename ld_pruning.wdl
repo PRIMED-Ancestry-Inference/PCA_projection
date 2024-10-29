@@ -6,8 +6,8 @@ import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/pli
 workflow LD_pruning {
     input {
         Array[File] vcf
-        File? variant_file
-        Int? variant_id_col
+        File variant_file
+        Int variant_id_col = 1
         Float? min_maf
         Boolean? snps_only
         Int? window_size
