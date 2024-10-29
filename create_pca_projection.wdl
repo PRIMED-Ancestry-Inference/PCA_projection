@@ -12,7 +12,7 @@ workflow create_pca_projection {
 		Array[File] vcf
 		File? ref_variants
 		Int? n_pcs
-		String? genome_build
+		Int? genome_build
 		Boolean prune_variants = true
 		Boolean remove_relateds = true
 		Float? min_maf
