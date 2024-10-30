@@ -14,15 +14,22 @@ workflow projected_PCA {
 		File? ref_groups
 		File? groups_file
 		Array[File] vcf
+		Int? genome_build
 		Float min_overlap = 0.95
+	}
+
+	call file_tasks.identifyColumns {
+		input:
+			ref_variants = ref_loadings,
+			id_column = "SNP"
 	}
 
 	scatter (file in vcf) {
 		call variant_tasks.subsetVariants {
 			input:
 				vcf = file,
-				variant_file = ref_loadings,
-				variant_id_col = 1
+				variant_file = identifyColumns.id_file,
+				genome_build = genome_build
 		}
 	}
 

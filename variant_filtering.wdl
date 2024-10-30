@@ -3,8 +3,7 @@ version 1.0
 task subsetVariants {
 	input {
 		File vcf
-		File variant_file
-		Int variant_id_col = 1
+		File? variant_file
 		Float? min_maf
 		Int genome_build = 38
 		Boolean snps_only = true
@@ -16,7 +15,6 @@ task subsetVariants {
 	String filename = basename(vcf)
 	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
 	String prefix = if (sub(filename, ".bcf", "") != filename) then "--bcf" else "--vcf"
-	String maf = if(defined(min_maf)) then "--maf " + min_maf else ""
 
 	command <<<
 		#get list of ranges to exclude
@@ -24,11 +22,7 @@ task subsetVariants {
 		cut -f 1,2,3 exclude_b~{genome_build}.txt > exclude.txt
 
 		#subset file with --extract extract.txt
-		cut -f ~{variant_id_col} ~{variant_file} > extract.txt
-
-		#subset file with --extract extract.txt
-		plink2 ~{prefix} ~{vcf} ~{maf} \
-			--extract extract.txt \
+		plink2 ~{prefix} ~{vcf} ~{"--maf " + min_maf} ~{"--extract " + variant_file} \
 			--exclude bed1 exclude.txt \
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \

@@ -1,5 +1,29 @@
 version 1.0
 
+task identifyColumns {
+	input {
+		File ref_variants
+		String id_column = "ID"
+	}
+
+	command <<<
+		Rscript -e "\
+		dat <- readr::read_tsv('~{ref_variants}', comment = '##', n_max=100); \
+		if (ncol(dat) == 1) id_col <- 1 else id_col <- which(names(dat) == '~{id_column}'); \
+		system(paste('cut -f', id_col, '~{ref_variants} > variant_ids.txt')); \
+		"
+	>>>
+
+	output {
+		File id_file = "variant_ids.txt"
+	}
+
+	runtime {
+		docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
+	}
+}
+
+
 task mergeFiles {
 	input {
 		Array[File] pgen

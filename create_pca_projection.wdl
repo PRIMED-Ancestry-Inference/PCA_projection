@@ -10,9 +10,9 @@ import "pca_plots.wdl" as pca_plots
 workflow create_pca_projection {
 	input{ 
 		Array[File] vcf
-		File ref_variants
+		File? ref_variants
 		Int? n_pcs
-		String? genome_build
+		Int? genome_build
 		Boolean prune_variants = true
 		Boolean remove_relateds = true
 		Float? min_maf
@@ -23,17 +23,18 @@ workflow create_pca_projection {
 		File? groups_file
 	}
 
-	call identifyColumns {
-		input:
-			ref_variants = ref_variants
+	if (defined(ref_variants)) {
+		call file_tasks.identifyColumns {
+			input:
+				ref_variants = select_first([ref_variants, ""])
+		}
 	}
 
 	scatter (file in vcf) {
 		call variant_tasks.subsetVariants {
 			input:
 				vcf = file,
-				variant_file = ref_variants,
-				variant_id_col = identifyColumns.id_col,
+				variant_file = identifyColumns.id_file,
 				genome_build = genome_build,
 				min_maf = min_maf
 		}
@@ -121,28 +122,5 @@ workflow create_pca_projection {
 		author: "Jonathan Shortt, Stephanie Gogarten, Amy Watt"
 		email: "jonathan.shortt@cuanschutz.edu"
 		description: "This workflow is used to create a pca projection from a genetic reference dataset (in VCF format). First, the reference data is subsetted to include only sites in common with a provided reference variant file (intended to contain only variants that one would expect to find in all downstream datsets that will be projected using loadings created in this worflow (e.g., a list of common sites that are easily imputed in TOPMed)), and then pruned for linkage equilibrium. The related individuals are removed. Then PCA is run on the dataset."
-	}
-}
-
-
-task identifyColumns {
-	input {
-		File ref_variants
-	}
-
-	command <<<
-		Rscript -e "\
-		dat <- readr::read_tsv('~{ref_variants}', comment = '##', n_max=100); \
-		if (ncol(dat) == 1) id_col <- 1 else id_col <- which(names(dat) == 'ID'); \
-		writeLines(as.character(id_col), 'id_col.txt')
-		"
-	>>>
-
-	output {
-		Int id_col = read_int("id_col.txt")
-	}
-
-	runtime {
-		docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
 	}
 }

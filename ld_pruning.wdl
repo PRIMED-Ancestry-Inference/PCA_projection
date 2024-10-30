@@ -6,8 +6,8 @@ import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/pli
 workflow LD_pruning {
     input {
         Array[File] vcf
-        File variant_file
-        Int variant_id_col = 1
+        File? variant_file
+        Int? genome_build
         Float? min_maf
         Boolean? snps_only
         Int? window_size
@@ -20,7 +20,7 @@ workflow LD_pruning {
              input:
                 vcf = file,
                 variant_file = variant_file,
-                variant_id_col = variant_id_col,
+                genome_build = genome_build,
                 min_maf = min_maf,
                 snps_only = snps_only
         }
