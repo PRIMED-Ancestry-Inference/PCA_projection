@@ -4,7 +4,9 @@ task subsetVariants {
 	input {
 		File vcf
 		File? variant_file
+		File? sample_file
 		Float? min_maf
+		Float? missingness_filter
 		Int genome_build = 38
 		Boolean snps_only = true
 		Boolean rm_dup = true
@@ -22,7 +24,8 @@ task subsetVariants {
 		cut -f 1,2,3 exclude_b~{genome_build}.txt > exclude.txt
 
 		#subset file with --extract extract.txt
-		plink2 ~{prefix} ~{vcf} ~{"--maf " + min_maf} ~{"--extract " + variant_file} \
+		plink2 ~{prefix} ~{vcf} ~{"--maf " + min_maf} ~{"--extract " + variant_file} ~{"--keep " + sample_file} \
+			~{"--mind " + missingness_filter} \
 			--exclude bed1 exclude.txt \
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
