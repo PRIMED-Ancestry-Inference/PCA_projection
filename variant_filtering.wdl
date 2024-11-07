@@ -25,7 +25,7 @@ task subsetVariants {
 
 		#subset file with --extract extract.txt
 		plink2 ~{prefix} ~{vcf} ~{"--maf " + min_maf} ~{"--extract " + variant_file} ~{"--keep " + sample_file} \
-			~{"--mind " + missingness_filter} \
+			~{"--geno " + missingness_filter} \
 			--exclude bed1 exclude.txt \
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
