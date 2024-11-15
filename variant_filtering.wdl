@@ -8,6 +8,7 @@ task subsetVariants {
 		Int genome_build = 38
 		Boolean snps_only = true
 		Boolean rm_dup = true
+		Boolean set_var_ids = true
 		Int mem_gb = 8
 	}
 
@@ -27,7 +28,7 @@ task subsetVariants {
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
 			--output-chr chrM \
-			--set-all-var-ids @:#:\$r:\$a \
+			~{true="--set-all-var-ids @:#:\$r:\$a" false="" set_var_ids} \
 			--make-pgen --out ~{basename}_subset
 		awk '/^[^#]/ {print $3}' ~{basename}_subset.pvar > selected_variants.txt
 	>>>
