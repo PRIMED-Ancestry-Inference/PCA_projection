@@ -3,7 +3,7 @@ version 1.0
 import "variant_filtering.wdl" as variant_tasks
 import "file_tasks.wdl" as file_tasks
 import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/plink2_pgen2bed.wdl" as pgen_conversion
-import "https://raw.githubusercontent.com/broadinstitute/palantir-workflows/main/ImputationPipeline/PCATasks.wdl" as pca_tasks
+import "https://raw.githubusercontent.com/PRIMED-Ancestry-Inference/palantir-workflows/main/ImputationPipeline/PCATasks.wdl" as pca_tasks
 import "pca_plots.wdl" as pca_plots
 
 workflow projected_PCA {
