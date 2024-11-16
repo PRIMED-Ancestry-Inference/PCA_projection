@@ -55,7 +55,7 @@ task mergeFiles {
 	}
 
 	runtime {
-		docker: "quay.io/biocontainers/plink2:2.00a5.10--h4ac6f70_0"
+		docker: "quay.io/biocontainers/plink2:2.00a5.12--h4ac6f70_0"
 		disks: "local-disk " + disk_size + " SSD"
 		memory: mem_gb + " GB"
 	}
@@ -98,7 +98,7 @@ task pgen2bed {
     }
 
     runtime {
-        docker: "quay.io/biocontainers/plink2:2.00a5.10--h4ac6f70_0"
+        docker: "quay.io/biocontainers/plink2:2.00a5.12--h4ac6f70_0"
         disks: "local-disk " + disk_size + " SSD"
         memory: mem_gb + " GB"
     }
