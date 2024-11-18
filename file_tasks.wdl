@@ -78,7 +78,7 @@ task pgen2bed {
     command {
         plink2 \
             --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
-            ~{"--alt-allele " + alt_allele_file + "2 1 '#'"} \
+            ~{"--alt1-allele 'force' " + alt_allele_file + " 2 1 '#'"} \
             --make-bed \
             --out ${out_string}
         md5sum ${out_string}.bed | cut -d " " -f 1 > md5_bed.txt
