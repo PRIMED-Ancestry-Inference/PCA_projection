@@ -28,7 +28,7 @@ task subsetVariants {
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
 			--output-chr chrM \
-			~{true="--set-all-var-ids @:#:\$r:\$a" false="" set_var_ids} \
+			~{true="--set-all-var-ids @:#:$r:$a" false="" set_var_ids} \
 			--make-pgen --out ~{basename}_subset
 		awk '/^[^#]/ {print $3}' ~{basename}_subset.pvar > selected_variants.txt
 	>>>
