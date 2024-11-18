@@ -16,6 +16,7 @@ task subsetVariants {
 	String filename = basename(vcf)
 	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
 	String prefix = if (sub(filename, ".bcf", "") != filename) then "--bcf" else "--vcf"
+	String var_id_string = if (set_var_ids) then "--set-all-var-ids @:#:\$r:\$a" else ""
 
 	command <<<
 		#get list of ranges to exclude
@@ -27,8 +28,7 @@ task subsetVariants {
 			--exclude bed1 exclude.txt \
 			~{true="--snps-only 'just-acgt'" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
-			--output-chr chrM \
-			~{true="--set-all-var-ids @:#:$r:$a" false="" set_var_ids} \
+			--output-chr chrM ~{var_id_string} \
 			--make-pgen --out ~{basename}_subset
 		awk '/^[^#]/ {print $3}' ~{basename}_subset.pvar > selected_variants.txt
 	>>>
