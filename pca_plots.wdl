@@ -31,7 +31,7 @@ task run_pca_plots {
         File? groups_file
         File? colormap
         Int n_pairs = 10
-        Int mem_gb = 8
+        Int mem_gb = 16
     }
 
     command <<<
