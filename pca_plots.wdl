@@ -6,7 +6,7 @@ workflow pca_plots {
         File? groups_file
         File? colormap
         Int? n_pairs
-        Int mem_gb
+        Int? mem_gb
     }
 
     call run_pca_plots {
