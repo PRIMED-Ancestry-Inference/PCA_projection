@@ -34,6 +34,8 @@ task run_pca_plots {
         Int mem_gb = 16
     }
 
+    Int disk_size = ceil(1.5*(size(data_file, "GB")) + 1.5*(size(groups_file, "GB")) + 1.5*(size(colormap, "GB"))) + 10
+
     command <<<
     Rscript /usr/local/PCA_projection/pca_plots.R \
         --data_file ~{data_file} \
@@ -52,6 +54,7 @@ task run_pca_plots {
 
     runtime{
         docker: "uwgac/pca_projection:0.2.0"
+        disks: "local-disk " + disk_size + " SSD"
         memory: mem_gb + " GB"
     }
 }
