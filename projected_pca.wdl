@@ -2,8 +2,7 @@ version 1.0
 
 import "variant_filtering.wdl" as variant_tasks
 import "file_tasks.wdl" as file_tasks
-import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/plink2_pgen2bed.wdl" as pgen_conversion
-import "https://raw.githubusercontent.com/broadinstitute/palantir-workflows/main/ImputationPipeline/PCATasks.wdl" as pca_tasks
+import "https://raw.githubusercontent.com/PRIMED-Ancestry-Inference/palantir-workflows/main/ImputationPipeline/PCATasks.wdl" as pca_tasks
 import "pca_plots.wdl" as pca_plots
 
 workflow projected_PCA {
@@ -50,11 +49,12 @@ workflow projected_PCA {
 	File final_pvar = select_first([mergeFiles.out_pvar, subsetVariants.subset_pvar[0]])
 	File final_psam = select_first([mergeFiles.out_psam, subsetVariants.subset_psam[0]])
 
-	call pgen_conversion.pgen2bed {
+	call file_tasks.pgen2bed {
 		input:
 			pgen = final_pgen,
 			pvar = final_pvar,
-			psam = final_psam
+			psam = final_psam,
+			alt_allele_file = ref_meansd
 	}
 
 	#check for overlap, if overlap is less than threshold, stop

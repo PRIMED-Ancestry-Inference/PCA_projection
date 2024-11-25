@@ -3,7 +3,6 @@ version 1.0
 import "variant_filtering.wdl" as variant_tasks
 import "sample_filtering.wdl" as sample_tasks
 import "file_tasks.wdl" as file_tasks
-import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/plink2_pgen2bed.wdl" as pgen_conversion
 import "https://raw.githubusercontent.com/PRIMED-Ancestry-Inference/palantir-workflows/main/ImputationPipeline/PCATasks.wdl" as pca_tasks
 import "pca_plots.wdl" as pca_plots
 
@@ -87,7 +86,7 @@ workflow create_pca_projection {
 	File final_pvar = select_first([removeRelateds.out_pvar, merged_pvar])
 	File final_psam = select_first([removeRelateds.out_psam, merged_psam])	
 
-	call pgen_conversion.pgen2bed {
+	call file_tasks.pgen2bed {
 		input:
 			pgen = final_pgen,
 			pvar = final_pvar,

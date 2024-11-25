@@ -10,6 +10,7 @@ task subsetVariants {
 		Int genome_build = 38
 		Boolean snps_only = true
 		Boolean rm_dup = true
+		#Boolean set_var_ids = true
 		Int mem_gb = 8
 	}
 
@@ -17,6 +18,7 @@ task subsetVariants {
 	String filename = basename(vcf)
 	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
 	String prefix = if (sub(filename, ".bcf", "") != filename) then "--bcf" else "--vcf"
+	#String var_id_string = if (set_var_ids) then "--set-all-var-ids @:#:\$r:\$a" else ""
 
 	command <<<
 		#get list of ranges to exclude
@@ -44,7 +46,7 @@ task subsetVariants {
 	}
 
 	runtime {
-		docker: "quay.io/biocontainers/plink2:2.00a5.10--h4ac6f70_0"
+		docker: "quay.io/biocontainers/plink2:2.00a5.12--h4ac6f70_0"
 		disks: "local-disk " + disk_size + " SSD"
 		memory: mem_gb + " GB"
 	}
@@ -95,7 +97,7 @@ task pruneVars {
 	}
 
 	runtime {
-		docker: "quay.io/biocontainers/plink2:2.00a5.10--h4ac6f70_0"
+		docker: "quay.io/biocontainers/plink2:2.00a5.12--h4ac6f70_0"
 		disks: "local-disk " + disk_size + " SSD"
 		memory: mem_gb + " GB"
 	}
