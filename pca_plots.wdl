@@ -6,13 +6,15 @@ workflow pca_plots {
         File? groups_file
         File? colormap
         Int? n_pairs
+        Int? mem_gb
     }
 
     call run_pca_plots {
         input: data_file = data_file, 
                groups_file = groups_file, 
                colormap = colormap,
-               n_pairs = n_pairs
+               n_pairs = n_pairs, 
+               mem_gb = mem_gb
     }
 
     output{
@@ -29,7 +31,10 @@ task run_pca_plots {
         File? groups_file
         File? colormap
         Int n_pairs = 10
+        Int mem_gb = 16
     }
+
+    Int disk_size = ceil(1.5*(size(data_file, "GB")) + 1.5*(size(groups_file, "GB")) + 1.5*(size(colormap, "GB"))) + 10
 
     command <<<
     Rscript /usr/local/PCA_projection/pca_plots.R \
@@ -49,5 +54,7 @@ task run_pca_plots {
 
     runtime{
         docker: "uwgac/pca_projection:0.2.0"
+        disks: "local-disk " + disk_size + " SSD"
+        memory: mem_gb + " GB"
     }
 }

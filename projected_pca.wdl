@@ -12,6 +12,8 @@ workflow projected_PCA {
 		File ref_meansd
 		File? ref_pcs
 		File? ref_groups
+		File? sample_file
+		Float? missingness_filter
 		File? groups_file
 		Array[File] vcf
 		Int? genome_build
@@ -29,6 +31,8 @@ workflow projected_PCA {
 			input:
 				vcf = file,
 				variant_file = identifyColumns.id_file,
+				sample_file = sample_file,
+				missingness_filter = missingness_filter,
 				genome_build = genome_build
 		}
 	}

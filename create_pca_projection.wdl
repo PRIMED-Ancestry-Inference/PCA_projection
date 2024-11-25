@@ -11,6 +11,8 @@ workflow create_pca_projection {
 	input{ 
 		Array[File] vcf
 		File? ref_variants
+		File? sample_file
+		Float? missingness_filter
 		Int? n_pcs
 		Int? genome_build
 		Boolean prune_variants = true
@@ -35,6 +37,8 @@ workflow create_pca_projection {
 			input:
 				vcf = file,
 				variant_file = identifyColumns.id_file,
+				sample_file = sample_file,
+				missingness_filter = missingness_filter,
 				genome_build = genome_build,
 				min_maf = min_maf
 		}
