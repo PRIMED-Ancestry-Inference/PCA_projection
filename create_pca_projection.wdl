@@ -73,11 +73,26 @@ workflow create_pca_projection {
 	File merged_psam = select_first([mergeFiles.out_psam, pruneVars.out_psam[0], subsetVariants.subset_psam[0]])
 
   	if (remove_relateds) {
+		call file_tasks.pgen2bed as king_prep {
+			input:
+				pgen = merged_pgen,
+				pvar = merged_pvar,
+				psam = merged_psam
+		}
+
+		call sample_tasks.king {
+			input:
+				bed = king_prep.out_bed,
+				bim = king_prep.out_bim,
+				fam = king_prep.out_fam
+		}
+
 		call sample_tasks.removeRelateds {
 			input:
 				pgen = merged_pgen,
 				pvar = merged_pvar,
 				psam = merged_psam,
+				king_table = king.kin0,
 				max_kinship_coefficient = max_kinship_coefficient
 		}
 	}
