@@ -80,6 +80,7 @@ task pgen2bed {
             --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
             ~{"--alt1-allele 'force' " + alt_allele_file + " 2 1 '#'"} \
             --make-bed \
+            --double-id \
             --out ${out_string}
         md5sum ${out_string}.bed | cut -d " " -f 1 > md5_bed.txt
         md5sum ${out_string}.bim | cut -d " " -f 1 > md5_bim.txt
