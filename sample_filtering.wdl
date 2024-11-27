@@ -3,24 +3,24 @@ version 1.0
 #remove related individuals
 task removeRelateds {
 	input {
-		File pgen
-		File pvar
-		File psam
+		File bed
+		File bim
+		File fam
 		File? king_table
 		Float max_kinship_coefficient = 0.0442
 		Int mem_gb = 16
 	}
 
-	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB"))) + 10
-	String basename = basename(pgen, ".pgen")
+	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) + 10
+	String basename = basename(bed, ".bed")
 
 	command <<<
 		#identify individuals who are less related than kinship threshold
-		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
+		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 		--king-cutoff ~{max_kinship_coefficient} ~{'---king-cutoff-table ' + king_table} \
 		--output-chr chrM \
 		--set-all-var-ids @:#:\$r:\$a \
-		--make-pgen \
+		--make-bed \
 		--out ~{basename}_unrel"
 		printf "${command}\n"
 		${command}
@@ -28,9 +28,9 @@ task removeRelateds {
 
 	output {
 		#File subset_keep_inds="~{basename}.king.cutoff.in.id"
-		File out_pgen="~{basename}_unrel.pgen"
-		File out_pvar="~{basename}_unrel.pvar"
-		File out_psam="~{basename}_unrel.psam"
+		File out_bed="~{basename}_unrel.bed"
+		File out_bim="~{basename}_unrel.bim"
+		File out_fam="~{basename}_unrel.fam"
 	}
 
 	runtime {
@@ -46,7 +46,7 @@ task king {
 		File bed
 		File bim
 		File fam
-		Int degree = 4
+		Int degree = 3
 		Int mem_gb = 16
 		Int n_cpus = 4
 	}

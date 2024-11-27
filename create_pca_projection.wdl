@@ -45,75 +45,62 @@ workflow create_pca_projection {
 		if (prune_variants) {
 			call variant_tasks.pruneVars {
 				input:
-					pgen = subsetVariants.subset_pgen,
-					pvar = subsetVariants.subset_pvar,
-					psam = subsetVariants.subset_psam,
+					bed = subsetVariants.subset_bed,
+					bim = subsetVariants.subset_bim,
+					fam = subsetVariants.subset_fam,
 					window_size = window_size,
 					shift_size = shift_size,
 					r2_threshold = r2_threshold
 			}
 		}
 
-		File subset_pgen = select_first([pruneVars.out_pgen, subsetVariants.subset_pgen])
-		File subset_pvar = select_first([pruneVars.out_pvar, subsetVariants.subset_pvar])
-		File subset_psam = select_first([pruneVars.out_psam, subsetVariants.subset_psam])
+		File subset_bed = select_first([pruneVars.out_bed, subsetVariants.subset_bed])
+		File subset_bim = select_first([pruneVars.out_bim, subsetVariants.subset_bim])
+		File subset_fam = select_first([pruneVars.out_fam, subsetVariants.subset_fam])
 	}
 
 	if (length(vcf) > 1) {
 		call file_tasks.mergeFiles {
 			input:
-				pgen = subset_pgen,
-				pvar = subset_pvar,
-				psam = subset_psam
+				bed = subset_bed,
+				bim = subset_bim,
+				fam = subset_fam
 		}
 	}
 
-	File merged_pgen = select_first([mergeFiles.out_pgen, pruneVars.out_pgen[0], subsetVariants.subset_pgen[0]])
-	File merged_pvar = select_first([mergeFiles.out_pvar, pruneVars.out_pvar[0], subsetVariants.subset_pvar[0]])
-	File merged_psam = select_first([mergeFiles.out_psam, pruneVars.out_psam[0], subsetVariants.subset_psam[0]])
+	File merged_bed = select_first([mergeFiles.out_bed, pruneVars.out_bed[0], subsetVariants.subset_bed[0]])
+	File merged_bim = select_first([mergeFiles.out_bim, pruneVars.out_bim[0], subsetVariants.subset_bim[0]])
+	File merged_fam = select_first([mergeFiles.out_fam, pruneVars.out_fam[0], subsetVariants.subset_fam[0]])
 
   	if (remove_relateds) {
-		call file_tasks.pgen2bed as king_prep {
-			input:
-				pgen = merged_pgen,
-				pvar = merged_pvar,
-				psam = merged_psam
-		}
 
 		call sample_tasks.king {
 			input:
-				bed = king_prep.out_bed,
-				bim = king_prep.out_bim,
-				fam = king_prep.out_fam
+				bed = merged_bed,
+				bim = merged_bim,
+				fam = merged_fam
 		}
 
 		call sample_tasks.removeRelateds {
 			input:
-				pgen = merged_pgen,
-				pvar = merged_pvar,
-				psam = merged_psam,
+				bed = merged_bed,
+				bim = merged_bim,
+				fam = merged_fam,
 				king_table = king.kin0,
 				max_kinship_coefficient = max_kinship_coefficient
 		}
 	}
 
-	File final_pgen = select_first([removeRelateds.out_pgen, merged_pgen])
-	File final_pvar = select_first([removeRelateds.out_pvar, merged_pvar])
-	File final_psam = select_first([removeRelateds.out_psam, merged_psam])	
-
-	call file_tasks.pgen2bed {
-		input:
-			pgen = final_pgen,
-			pvar = final_pvar,
-			psam = final_psam
-	}
+	File final_bed = select_first([removeRelateds.out_bed, merged_bed])
+	File final_bim = select_first([removeRelateds.out_bim, merged_bim])
+	File final_fam = select_first([removeRelateds.out_fam, merged_fam])	
 
 	call pca_tasks.PerformPCA {
 		input:
-			bed = pgen2bed.out_bed,
-			bim = pgen2bed.out_bim,
-			fam = pgen2bed.out_fam,
-			basename = basename(pgen2bed.out_bed, ".bed"),
+			bed = final_bed,
+			bim = final_bim,
+			fam = final_fam,
+			basename = basename(final_bed, ".bed"),
 			n_pcs = n_pcs
 	}
 
