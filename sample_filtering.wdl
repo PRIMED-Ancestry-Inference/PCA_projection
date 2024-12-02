@@ -40,7 +40,7 @@ task removeRelateds {
 	}
 }
 
-
+# convert to numeric chromosomes before running king
 task king {
 	input {
 		File bed
@@ -56,8 +56,12 @@ task king {
 
 	command <<<
 		set -e -o pipefail
+
+		plink --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+			--output-chr 26 \
+			--make-bed --out tmp \
 		
-		king -b ~{bed} \
+		king -b tmp.bed \
 			--ibdseg --degree ~{degree} \
 			--prefix ~{basename} \
 			--cpus ~{n_cpus}
