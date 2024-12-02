@@ -70,6 +70,8 @@ task pruneVars {
 	String basename = basename(bed, ".bed")
 
 	command <<<
+		set -e -o pipefail
+		
 		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 			--rm-dup force-first \
 			--output-chr chrM \

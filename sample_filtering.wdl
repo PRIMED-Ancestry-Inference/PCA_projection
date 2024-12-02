@@ -55,14 +55,24 @@ task king {
 	String basename = basename(bed, ".bed")
 
 	command <<<
+		set -e -o pipefail
+		
 		king -b ~{bed} \
-			--related --degree ~{degree} \
-			--prefix ~{basename}_unrel \
+			--ibdseg --degree ~{degree} \
+			--prefix ~{basename} \
 			--cpus ~{n_cpus}
+
+		Rscript -e "\
+		library(dplyr); \
+		library(readr); \
+		kin <- read_tsv('~{basename}_unrel.seg'); \
+		kin <- mutate(kin, IBS0=(1 - IBD1Seg - IBD2Seg), Kinship=0.5*PropIBD); \
+		write_tsv(kin, '~{basename}.kin0'); \
+		"
 	>>>
 
 	output {
-		File kin0 = "~{basename}_unrel.kin0"
+		File kin0 = "~{basename}.kin0"
 	}
 
 	runtime {

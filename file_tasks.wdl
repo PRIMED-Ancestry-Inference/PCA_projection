@@ -36,6 +36,8 @@ task mergeFiles {
 	Int disk_size = ceil(3*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) + 10
 
 	command <<<
+		set -e -o pipefail
+		
 		# merge plink files
 		cat ~{write_lines(bed)} | sed 's/.bed//' > bfile.txt
 		plink2 --pmerge-list bfile.txt bfile \
