@@ -41,7 +41,7 @@ task mergeFiles {
 		plink2 --pmerge-list bfile.txt bfile \
 			--merge-max-allele-ct 2 \
 			--out tmp
-		plink2 --bfile tmp \
+		plink2 --pfile tmp \
 			--output-chr chrM \
 			--set-all-var-ids @:#:\$r:\$a \
 			--make-bed --out merged \
