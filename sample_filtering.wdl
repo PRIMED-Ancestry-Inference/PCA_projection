@@ -17,7 +17,7 @@ task removeRelateds {
 	command <<<
 		#identify individuals who are less related than kinship threshold
 		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-		--king-cutoff ~{max_kinship_coefficient} ~{'---king-cutoff-table ' + king_table} \
+		--king-cutoff ~{max_kinship_coefficient} ~{'--king-cutoff-table ' + king_table} \
 		--output-chr chrM \
 		--set-all-var-ids @:#:\$r:\$a \
 		--make-bed \
