@@ -6,7 +6,6 @@ task removeRelateds {
 		File bed
 		File bim
 		File fam
-		File? king_table
 		Float max_kinship_coefficient = 0.0442
 		Int mem_gb = 16
 	}
@@ -17,7 +16,7 @@ task removeRelateds {
 	command <<<
 		#identify individuals who are less related than kinship threshold
 		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-		--king-cutoff ~{max_kinship_coefficient} ~{'--king-cutoff-table ' + king_table} \
+		--king-cutoff ~{max_kinship_coefficient} \
 		--output-chr chrM \
 		--set-all-var-ids @:#:\$r:\$a \
 		--make-bed \
@@ -39,6 +38,7 @@ task removeRelateds {
 		memory: mem_gb + " GB"
 	}
 }
+
 
 # convert to numeric chromosomes before running king
 task king {
@@ -84,5 +84,73 @@ task king {
 		disks: "local-disk " + disk_size + " SSD"
 		memory: mem_gb + " GB"
 		cpu: n_cpus
+	}
+}
+
+
+task findUnrelated {
+	input {
+		File king_file
+		String estimator = "PropIBD"
+		Int degree = 3
+		Int mem_gb = 16
+	}
+
+	command <<<
+		Rscript -e "\
+		library(GENESIS); \
+		exponent <- c(5,7,9,11,13)[degree]; \
+		thresh <- 2^(-exponent/2); \
+		kinobj <- kingToMatrix('~{king_file}', estimator='~{estimator}', thresh=thresh); \
+		part <- pcairPartition(kinobj, kin.thresh=thresh); \
+		writeLines(part$unrels, 'unrelated_samples.txt'); \
+		"
+	>>>
+
+	output {
+		File unrelated_samples = "unrelated_samples.txt"
+	}
+
+	runtime {
+		docker: "uwgac/topmed-master:2.12.1"
+		memory: mem_gb + " GB"
+	}
+}
+
+
+task keepSamples {
+	input {
+		File bed
+		File bim
+		File fam
+		File keep
+		String suffix = "keep"
+		Int mem_gb = 16
+	}
+
+	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) + 10
+	String basename = basename(bed, ".bed")
+
+	command <<<
+		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+		--keep ~{keep} \
+		--output-chr chrM \
+		--set-all-var-ids @:#:\$r:\$a \
+		--make-bed \
+		--out ~{basename}_~{suffix}"
+		printf "${command}\n"
+		${command}
+	>>>
+
+	output {
+		File out_bed="~{basename}_~{suffix}.bed"
+		File out_bim="~{basename}_~{suffix}.bim"
+		File out_fam="~{basename}_~{suffix}.fam"
+	}
+
+	runtime {
+		docker: "quay.io/biocontainers/plink2:2.00a5.12--h4ac6f70_0"
+		disks: "local-disk " + disk_size + " SSD"
+		memory: mem_gb + " GB"
 	}
 }

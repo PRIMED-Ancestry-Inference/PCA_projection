@@ -17,7 +17,7 @@ workflow create_pca_projection {
 		Boolean prune_variants = true
 		Boolean remove_relateds = true
 		Float? min_maf
-		Float? max_kinship_coefficient
+		Int kinship_degree_filter = 3
 		Int? window_size
 		Int? shift_size
 		Float? r2_threshold
@@ -78,22 +78,29 @@ workflow create_pca_projection {
 			input:
 				bed = merged_bed,
 				bim = merged_bim,
-				fam = merged_fam
+				fam = merged_fam,
+				degree = kinship_degree_filter
 		}
 
-		call sample_tasks.removeRelateds {
+		call sample_tasks.findUnrelated {
+			input:
+				king_file = king.kin0,
+				degree = kinship_degree_filter
+		}
+
+		call sample_tasks.keepSamples {
 			input:
 				bed = merged_bed,
 				bim = merged_bim,
 				fam = merged_fam,
-				king_table = king.kin0,
-				max_kinship_coefficient = max_kinship_coefficient
+				keep = findUnrelated.unrelated_samples,
+				suffix = "unrel"
 		}
 	}
 
-	File final_bed = select_first([removeRelateds.out_bed, merged_bed])
-	File final_bim = select_first([removeRelateds.out_bim, merged_bim])
-	File final_fam = select_first([removeRelateds.out_fam, merged_fam])	
+	File final_bed = select_first([keepSamples.out_bed, merged_bed])
+	File final_bim = select_first([keepSamples.out_bim, merged_bim])
+	File final_fam = select_first([keepSamples.out_fam, merged_fam])	
 
 	call pca_tasks.PerformPCA {
 		input:
