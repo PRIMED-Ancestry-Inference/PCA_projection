@@ -99,7 +99,7 @@ task findUnrelated {
 	command <<<
 		Rscript -e "\
 		library(GENESIS); \
-		exponent <- c(5,7,9,11,13)[degree]; \
+		exponent <- c(5,7,9,11,13)[~{degree}]; \
 		thresh <- 2^(-exponent/2); \
 		kinobj <- kingToMatrix('~{king_file}', estimator='~{estimator}', thresh=thresh); \
 		part <- pcairPartition(kinobj, kin.thresh=thresh); \
