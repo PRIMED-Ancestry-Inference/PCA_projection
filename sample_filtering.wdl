@@ -104,7 +104,7 @@ task findUnrelated {
 		kinobj <- kingToMatrix('~{king_file}', estimator='~{estimator}', thresh=thresh); \
 		part <- pcairPartition(kinobj, kin.thresh=thresh); \
 		keep <- part[['unrels']]; \
-		writeLines(data.frame(FID=keep, IID=keep), 'unrelated_samples.txt', col_names=FALSE); \
+		readr::write_tsv(tibble::tibble(FID=keep, IID=keep), 'unrelated_samples.txt', col_names=FALSE); \
 		"
 	>>>
 
