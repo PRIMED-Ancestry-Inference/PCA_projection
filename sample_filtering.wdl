@@ -103,7 +103,8 @@ task findUnrelated {
 		thresh <- 2^(-exponent/2); \
 		kinobj <- kingToMatrix('~{king_file}', estimator='~{estimator}', thresh=thresh); \
 		part <- pcairPartition(kinobj, kin.thresh=thresh); \
-		writeLines(c('#IID', part[['unrels']]), 'unrelated_samples.txt'); \
+		keep <- part[['unrels']]; \
+		writeLines(data.frame(FID=keep, IID=keep), 'unrelated_samples.txt', col_names=FALSE); \
 		"
 	>>>
 
