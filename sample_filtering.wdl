@@ -88,7 +88,7 @@ task king {
 }
 
 
-task findUnrelated {
+task findRelated {
 	input {
 		File king_file
 		String estimator = "PropIBD"
@@ -103,13 +103,13 @@ task findUnrelated {
 		thresh <- 2^(-exponent/2); \
 		kinobj <- kingToMatrix('~{king_file}', estimator='~{estimator}', thresh=thresh); \
 		part <- pcairPartition(kinobj, kin.thresh=thresh); \
-		keep <- part[['unrels']]; \
-		readr::write_tsv(tibble::tibble(FID=keep, IID=keep), 'unrelated_samples.txt', col_names=FALSE); \
+		rels <- part[['rels']]; \
+		readr::write_tsv(tibble::tibble(FID=rels, IID=rels), 'related_samples.txt', col_names=FALSE); \
 		"
 	>>>
 
 	output {
-		File unrelated_samples = "unrelated_samples.txt"
+		File related_samples = "related_samples.txt"
 	}
 
 	runtime {
@@ -119,13 +119,13 @@ task findUnrelated {
 }
 
 
-task keepSamples {
+task removeSamples {
 	input {
 		File bed
 		File bim
 		File fam
-		File keep
-		String suffix = "keep"
+		File samples_to_remove
+		String suffix = "subset"
 		Int mem_gb = 16
 	}
 
@@ -134,7 +134,7 @@ task keepSamples {
 
 	command <<<
 		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-		--keep ~{keep} \
+		--remove ~{samples_to_remove} \
 		--output-chr chrM \
 		--set-all-var-ids @:#:\$r:\$a \
 		--make-bed \
