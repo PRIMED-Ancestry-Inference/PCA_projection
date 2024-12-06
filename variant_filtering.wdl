@@ -28,7 +28,7 @@ task subsetVariants {
 		plink2 ~{prefix} ~{vcf} ~{"--maf " + min_maf} ~{"--extract " + variant_file} ~{"--keep " + sample_file} \
 			~{"--geno " + missingness_filter} \
 			--exclude bed1 exclude.txt \
-			~{true="--snps-only 'just-acgt' --max alleles 2" false="" snps_only} \
+			~{true="--snps-only 'just-acgt' --max-alleles 2" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
 			~{"--alt1-allele 'force' " + alt_allele_file + " 2 1 '#'"} \
 			--output-chr chrM \
