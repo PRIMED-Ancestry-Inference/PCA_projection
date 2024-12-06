@@ -1,7 +1,7 @@
 version 1.0
 
 import "variant_filtering.wdl" as variant_tasks
-import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/plink2_pgen2vcf.wdl" as pgen_conversion
+import "https://raw.githubusercontent.com/UW-GAC/primed-file-conversion/main/plink2_bed2vcf.wdl" as bed_conversion
 
 workflow LD_pruning {
     input {
@@ -27,24 +27,24 @@ workflow LD_pruning {
 
         call variant_tasks.pruneVars {
              input:
-                pgen = subsetVariants.subset_pgen,
-                pvar = subsetVariants.subset_pvar,
-                psam = subsetVariants.subset_psam,
+                bed = subsetVariants.subset_bed,
+                bim = subsetVariants.subset_bim,
+                fam = subsetVariants.subset_fam,
                 window_size = window_size,
                 shift_size = shift_size,
                 r2_threshold = r2_threshold
         }
 
-        call pgen_conversion.pgen2vcf {
+        call bed_conversion.bed2vcf {
             input:
-                pgen = pruneVars.out_pgen,
-                pvar = pruneVars.out_pvar,
-                psam = pruneVars.out_psam
+                bed_file = pruneVars.out_bed,
+                bim_file = pruneVars.out_bim,
+                fam_file = pruneVars.out_fam
         }
     }
 
     output {
-        Array[File] pruned_vcf = pgen2vcf.out_file
+        Array[File] pruned_vcf = bed2vcf.out_file
     }
 
     meta {
