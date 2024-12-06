@@ -131,7 +131,7 @@ task king_robust {
 task findRelated {
 	input {
 		File king_file
-		String estimator = "PropIBD"
+		String estimator = "Kinship"
 		Int degree = 3
 		Int mem_gb = 16
 	}
