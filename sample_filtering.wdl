@@ -41,7 +41,7 @@ task removeRelateds {
 
 
 # convert to numeric chromosomes before running king
-task king {
+task king_ibdseg {
 	input {
 		File bed
 		File bim
@@ -60,7 +60,7 @@ task king {
 		plink --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 			--output-chr 26 \
 			--make-bed --out tmp \
-		
+
 		king -b tmp.bed \
 			--ibdseg --degree ~{degree} \
 			--prefix ~{basename} \
