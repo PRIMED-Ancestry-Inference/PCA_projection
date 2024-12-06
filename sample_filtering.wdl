@@ -116,7 +116,7 @@ task king_robust {
 	>>>
 
 	output {
-		File kin = "~{basename}.kin"
+		File kin0 = "~{basename}.kin0"
 	}
 
 	runtime {

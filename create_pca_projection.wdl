@@ -84,7 +84,7 @@ workflow create_pca_projection {
 
 		call sample_tasks.findRelated {
 			input:
-				king_file = king_robust.kin,
+				king_file = king_robust.kin0,
 				degree = kinship_degree_filter
 		}
 
