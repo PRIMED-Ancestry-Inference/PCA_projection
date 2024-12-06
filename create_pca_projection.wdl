@@ -74,7 +74,7 @@ workflow create_pca_projection {
 
   	if (remove_relateds) {
 
-		call sample_tasks.king_ibdseg {
+		call sample_tasks.king_robust {
 			input:
 				bed = merged_bed,
 				bim = merged_bim,
@@ -84,7 +84,7 @@ workflow create_pca_projection {
 
 		call sample_tasks.findRelated {
 			input:
-				king_file = king_ibdseg.kin0,
+				king_file = king_robust.kin0,
 				degree = kinship_degree_filter
 		}
 

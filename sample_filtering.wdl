@@ -87,6 +87,46 @@ task king_ibdseg {
 	}
 }
 
+# convert to numeric chromosomes before running king
+task king_robust {
+	input {
+		File bed
+		File bim
+		File fam
+		Int degree = 3
+		Int mem_gb = 16
+		Int n_cpus = 4
+	}
+
+	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) + 10
+	String basename = basename(bed, ".bed")
+
+	command <<<
+		set -e -o pipefail
+
+		plink --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+			--output-chr 26 \
+			--make-bed --out tmp \
+
+		king -b tmp.bed \
+			--kinship --degree ~{degree} \
+			--prefix ~{basename} \
+			--cpus ~{n_cpus}
+
+	>>>
+
+	output {
+		File kin0 = "~{basename}.kin"
+	}
+
+	runtime {
+		docker: "uwgac/topmed-master:2.12.1"
+		disks: "local-disk " + disk_size + " SSD"
+		memory: mem_gb + " GB"
+		cpu: n_cpus
+	}
+}
+
 
 task findRelated {
 	input {
