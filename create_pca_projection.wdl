@@ -7,7 +7,7 @@ import "https://raw.githubusercontent.com/PRIMED-Ancestry-Inference/palantir-wor
 import "pca_plots.wdl" as pca_plots
 
 workflow create_pca_projection {
-	input{ 
+	input{
 		Array[File] vcf
 		File? ref_variants
 		File? sample_file
@@ -74,7 +74,7 @@ workflow create_pca_projection {
 
   	if (remove_relateds) {
 
-		call sample_tasks.king {
+		call sample_tasks.king_ibdseg {
 			input:
 				bed = merged_bed,
 				bim = merged_bim,
@@ -84,7 +84,7 @@ workflow create_pca_projection {
 
 		call sample_tasks.findRelated {
 			input:
-				king_file = king.kin0,
+				king_file = king_ibdseg.kin0,
 				degree = kinship_degree_filter
 		}
 
@@ -100,7 +100,7 @@ workflow create_pca_projection {
 
 	File final_bed = select_first([removeSamples.out_bed, merged_bed])
 	File final_bim = select_first([removeSamples.out_bim, merged_bim])
-	File final_fam = select_first([removeSamples.out_fam, merged_fam])	
+	File final_fam = select_first([removeSamples.out_fam, merged_fam])
 
 	call pca_tasks.PerformPCA {
 		input:
@@ -112,8 +112,8 @@ workflow create_pca_projection {
 	}
 
 	call pca_plots.run_pca_plots {
-		input: 
-			data_file = PerformPCA.pcs, 
+		input:
+			data_file = PerformPCA.pcs,
 			groups_file = groups_file
 	}
 
