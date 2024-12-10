@@ -39,41 +39,33 @@ workflow projected_PCA {
 	if (length(vcf) > 1) {
 		call file_tasks.mergeFiles {
 			input:
-				pgen = subsetVariants.subset_pgen,
-				pvar = subsetVariants.subset_pvar,
-				psam = subsetVariants.subset_psam
+				bed = subsetVariants.subset_bed,
+				bim = subsetVariants.subset_bim,
+				fam = subsetVariants.subset_fam
 		}
 	}
 
-	File final_pgen = select_first([mergeFiles.out_pgen, subsetVariants.subset_pgen[0]])
-	File final_pvar = select_first([mergeFiles.out_pvar, subsetVariants.subset_pvar[0]])
-	File final_psam = select_first([mergeFiles.out_psam, subsetVariants.subset_psam[0]])
-
-	call file_tasks.pgen2bed {
-		input:
-			pgen = final_pgen,
-			pvar = final_pvar,
-			psam = final_psam,
-			alt_allele_file = ref_meansd
-	}
+	File final_bed = select_first([mergeFiles.out_bed, subsetVariants.subset_bed[0]])
+	File final_bim = select_first([mergeFiles.out_bim, subsetVariants.subset_bim[0]])
+	File final_fam = select_first([mergeFiles.out_fam, subsetVariants.subset_fam[0]])
 
 	#check for overlap, if overlap is less than threshold, stop
 	call checkOverlap {
 		input:
 			ref_loadings = ref_loadings,
 			ref_meansd = ref_meansd,
-			bim = pgen2bed.out_bim,
+			bim = final_bim,
 			min_overlap = min_overlap
 	}
 
 	call pca_tasks.ProjectArray {
 		input:
-			bed = pgen2bed.out_bed,
-			bim = pgen2bed.out_bim,
-			fam = pgen2bed.out_fam,
+			bed = final_bed,
+			bim = final_bim,
+			fam = final_fam,
 			pc_loadings = checkOverlap.subset_loadings,
 			pc_meansd = checkOverlap.subset_meansd,
-			basename = basename(pgen2bed.out_bed, ".bed")
+			basename = basename(final_bed, ".bed")
 	}
 
 	call pca_plots.run_pca_plots {
