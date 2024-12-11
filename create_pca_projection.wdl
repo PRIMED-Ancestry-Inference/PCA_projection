@@ -25,6 +25,13 @@ workflow create_pca_projection {
 		String relatedness_estimator = "robust"
 	}
 
+	# Input validation for relatedness_estimator
+  	if (remove_relateds) {
+		# Map king relatedness estimator to the appropriate value for the GENESIS task.
+		Map[String, String] relatedness_estimator_map = {"robust": "Kinship", "ibdseg": "PropIBD"}
+		String estimator = relatedness_estimator_map[relatedness_estimator]
+	}
+
 	if (defined(ref_variants)) {
 		call file_tasks.identifyColumns {
 			input:
@@ -75,9 +82,6 @@ workflow create_pca_projection {
 
   	if (remove_relateds) {
 
-		# Map king relatedness estimator to the appropriate value for the GENESIS task.
-		Map[String, String] relatedness_estimator_map = {"robust": "Kinship", "ibdseg": "PropIBD"}
-
 		if (relatedness_estimator == "robust") {
 			call sample_tasks.king_robust {
 					input:
@@ -101,7 +105,7 @@ workflow create_pca_projection {
 		call sample_tasks.findRelated {
 			input:
 				king_file = select_first([king_robust.kin0, king_ibdseg.kin0]),
-				estimator = relatedness_estimator_map[relatedness_estimator],
+				estimator = estimator,
 				degree = kinship_degree_filter
 		}
 
