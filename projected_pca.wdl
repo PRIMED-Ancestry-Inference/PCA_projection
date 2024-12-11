@@ -12,6 +12,7 @@ workflow projected_PCA {
 		File? ref_pcs
 		File? ref_groups
 		File? sample_file
+		File? sample_variants_file
 		Float? missingness_filter
 		File? groups_file
 		Array[File] vcf
@@ -29,7 +30,7 @@ workflow projected_PCA {
 		call variant_tasks.subsetVariants {
 			input:
 				vcf = file,
-				variant_files = select_all([identifyColumns.id_file]),
+				variant_files = select_all([identifyColumns.id_file, sample_variants_file]),
 				sample_file = sample_file,
 				missingness_filter = missingness_filter,
 				genome_build = genome_build
