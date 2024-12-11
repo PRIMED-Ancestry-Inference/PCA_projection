@@ -3,7 +3,7 @@ version 1.0
 task subsetVariants {
 	input {
 		File vcf
-		Array[File]? variant_files
+		Array[File] variant_files = []
 		File? sample_file
 		File? alt_allele_file
 		Float? min_maf
@@ -28,7 +28,7 @@ task subsetVariants {
 		plink2 \
 			~{prefix} ~{vcf} \
 			~{"--maf " + min_maf} \
-			~{if defined(variant_files) then "--extract-intersect " else ""} ~{sep=" " variant_files} \
+			~{if length(variant_files) > 0 then "--extract-intersect " else ""} ~{sep=" " variant_files} \
 			~{"--keep " + sample_file} \
 			~{"--geno " + missingness_filter} \
 			--exclude bed1 exclude.txt \
