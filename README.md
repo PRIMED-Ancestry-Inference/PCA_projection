@@ -22,6 +22,7 @@ window_size | window size for LD pruning (default 10,000)
 shift_size | shift size for LD pruning (default 1000)
 r2_threshold | r2 threshold for LD pruning (default 0.1)
 groups_file | Two-column tsv file of subject_id and group, used to label plots (optional)
+relatedness_estimator | If removing relatedness, the type of estimator to use when running KING. Either "robust" or "ibdseg". (default "robust")
 
 
 Outputs:
@@ -38,9 +39,9 @@ loadings_log | log from running plink2 --pca
 pca_projection | PCs from running PCA on this dataset with calculated loadings
 projection_log | log from running plink2 --score
 pca_plots_pc12 | png file of PC1 and PC2 scatterplot
-pca_plot_pairs | png file of pairwise PC scatterplots 
+pca_plot_pairs | png file of pairwise PC scatterplots
 pca_plots_parcoord | png file of parallel coordinates plot for PCs
-pca_plots | html file with PCA plots 
+pca_plots | html file with PCA plots
 
 
 ## projected_PCA
@@ -72,11 +73,11 @@ projection_log | log from running plink2 --score
 pca_plots_pc12 | png file of PC1 and PC2 scatterplot of samples
 pca_plot_pairs | png file of pairwise PC scatterplots of samples
 pca_plots_parcoord | png file of parallel coordinates plot for PCs of samples
-pca_plots | html file with PCA plots of samples 
-pca_plots_pc12_ref | png file of PC1 and PC2 scatterplot of samples overlaid on references 
-pca_plot_pairs_ref | png file of pairwise PC scatterplots of samples overlaid on references 
-pca_plots_parcoord_ref | png file of parallel coordinates plot for PCs of samples overlaid on references 
-pca_plots_ref | html file with PCA plots of samples overlaid on references 
+pca_plots | html file with PCA plots of samples
+pca_plots_pc12_ref | png file of PC1 and PC2 scatterplot of samples overlaid on references
+pca_plot_pairs_ref | png file of pairwise PC scatterplots of samples overlaid on references
+pca_plots_parcoord_ref | png file of parallel coordinates plot for PCs of samples overlaid on references
+pca_plots_ref | html file with PCA plots of samples overlaid on references
 
 
 ## LD_pruning
@@ -91,7 +92,7 @@ vcf | Array of VCF files (possibly split by chromosome)
 variant_file | Optional file with variant selection to start the pruning
 variant_id_col | Column in variant_file containing the IDs
 min_maf | minimum MAF for variants to include (optional)
-snps_only | Boolean for whether to use only SNPs (default true) 
+snps_only | Boolean for whether to use only SNPs (default true)
 window_size | window size for LD pruning (default 10,000)
 shift_size | shift size for LD pruning (default 1000)
 r2_threshold | r2 threshold for LD pruning (default 0.1)
@@ -133,7 +134,7 @@ maf_filtered_variants | Text file with variants that passed the MAF filter in an
 
 ## pca_plots
 
-This workflow uses a file with PCs to create pairs plots and parallel coordinate plots. 
+This workflow uses a file with PCs to create pairs plots and parallel coordinate plots.
 
 Inputs:
 
@@ -149,6 +150,6 @@ Outputs:
 output | description
 --- | ---
 pca_plots_pc12 | png file of PC1 and PC2 scatterplot
-pca_plot_pairs | png file of pairwise PC scatterplots 
+pca_plot_pairs | png file of pairwise PC scatterplots
 pca_plots_parcoord | png file of parallel coordinates plot for PCs
-pca_plots | html file with PCA plots 
+pca_plots | html file with PCA plots
