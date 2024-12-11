@@ -5,12 +5,12 @@ task subsetVariants {
 		File vcf
 		File? variant_file
 		File? sample_file
+		File? alt_allele_file
 		Float? min_maf
 		Float? missingness_filter
 		Int genome_build = 38
 		Boolean snps_only = true
 		Boolean rm_dup = true
-		#Boolean set_var_ids = true
 		Int mem_gb = 8
 	}
 
@@ -18,7 +18,6 @@ task subsetVariants {
 	String filename = basename(vcf)
 	String basename = if (sub(filename, ".bcf", "") != filename) then basename(filename, ".bcf") else basename(filename, ".vcf.gz")
 	String prefix = if (sub(filename, ".bcf", "") != filename) then "--bcf" else "--vcf"
-	#String var_id_string = if (set_var_ids) then "--set-all-var-ids @:#:\$r:\$a" else ""
 
 	command <<<
 		#get list of ranges to exclude
@@ -29,19 +28,21 @@ task subsetVariants {
 		plink2 ~{prefix} ~{vcf} ~{"--maf " + min_maf} ~{"--extract " + variant_file} ~{"--keep " + sample_file} \
 			~{"--geno " + missingness_filter} \
 			--exclude bed1 exclude.txt \
-			~{true="--snps-only 'just-acgt'" false="" snps_only} \
+			~{true="--snps-only 'just-acgt' --max-alleles 2" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
+			~{"--alt1-allele 'force' " + alt_allele_file + " 2 1 '#'"} \
 			--output-chr chrM \
 			--set-all-var-ids @:#:\$r:\$a \
-			--make-pgen --out ~{basename}_subset
-		awk '/^[^#]/ {print $3}' ~{basename}_subset.pvar > selected_variants.txt
+			--double-id \
+			--make-bed --out ~{basename}_subset
+		awk '/^[^#]/ {print $2}' ~{basename}_subset.bim > selected_variants.txt
 	>>>
 
 	output {
 		File snps_to_keep="selected_variants.txt"
-		File subset_pgen="~{basename}_subset.pgen"
-		File subset_pvar="~{basename}_subset.pvar"
-		File subset_psam="~{basename}_subset.psam"
+		File subset_bed="~{basename}_subset.bed"
+		File subset_bim="~{basename}_subset.bim"
+		File subset_fam="~{basename}_subset.fam"
 		File subset_log="~{basename}_subset.log"
 	}
 
@@ -56,20 +57,22 @@ task subsetVariants {
 #prune dataset by linkage
 task pruneVars {
 	input{
-		File pgen
-		File pvar
-		File psam
+		File bed
+		File bim
+		File fam
 		Int window_size = 10000
 		Int shift_size = 1000
 		Float r2_threshold = 0.1
 		Int mem_gb = 8
 	}
 
-	Int disk_size = ceil(1.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB")))
-	String basename = basename(pgen, ".pgen")
-	
+	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
+	String basename = basename(bed, ".bed")
+
 	command <<<
-		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
+		set -e -o pipefail
+
+		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 			--rm-dup force-first \
 			--output-chr chrM \
 			--set-all-var-ids @:#:\$r:\$a \
@@ -79,11 +82,11 @@ task pruneVars {
 		${command}
 
 		# extract pruned variants
-		command="plink2 --pgen ~{pgen} --pvar ~{pvar} --psam ~{psam} \
+		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 			--extract ~{basename}_indep.prune.in \
 			--output-chr chrM \
 			--set-all-var-ids @:#:\$r:\$a \
-			--make-pgen \
+			--make-bed \
 			--out ~{basename}_pruned"
 		printf "${command}\n"
 		${command}
@@ -91,9 +94,9 @@ task pruneVars {
 
 	output {
 		#File subset_keep_vars="~{basename}_indep.prune.in"
-		File out_pgen="~{basename}_pruned.pgen"
-		File out_pvar="~{basename}_pruned.pvar"
-		File out_psam="~{basename}_pruned.psam"
+		File out_bed="~{basename}_pruned.bed"
+		File out_bim="~{basename}_pruned.bim"
+		File out_fam="~{basename}_pruned.fam"
 	}
 
 	runtime {
