@@ -25,7 +25,11 @@ task subsetVariants {
 		cut -f 1,2,3 exclude_b~{genome_build}.txt > exclude.txt
 
 		#subset file with --extract extract.txt
-		plink2 ~{prefix} ~{vcf} ~{"--maf " + min_maf} ~{"--extract " + variant_file} ~{"--keep " + sample_file} \
+		plink2 \
+			~{prefix} ~{vcf} \
+			~{"--maf " + min_maf} \
+			~{"--extract " + variant_file} \
+			~{"--keep " + sample_file} \
 			~{"--geno " + missingness_filter} \
 			--exclude bed1 exclude.txt \
 			~{true="--snps-only 'just-acgt' --max-alleles 2" false="" snps_only} \
