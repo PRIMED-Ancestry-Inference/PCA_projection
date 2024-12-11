@@ -43,7 +43,7 @@ workflow create_pca_projection {
 		call variant_tasks.subsetVariants {
 			input:
 				vcf = file,
-				variant_file = identifyColumns.id_file,
+				variant_files = select_all([identifyColumns.id_file]),
 				sample_file = sample_file,
 				missingness_filter = missingness_filter,
 				genome_build = genome_build,

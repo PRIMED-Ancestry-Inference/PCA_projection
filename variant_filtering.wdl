@@ -3,7 +3,7 @@ version 1.0
 task subsetVariants {
 	input {
 		File vcf
-		File? variant_file
+		Array[File] variant_files = []
 		File? sample_file
 		File? alt_allele_file
 		Float? min_maf
@@ -25,7 +25,11 @@ task subsetVariants {
 		cut -f 1,2,3 exclude_b~{genome_build}.txt > exclude.txt
 
 		#subset file with --extract extract.txt
-		plink2 ~{prefix} ~{vcf} ~{"--maf " + min_maf} ~{"--extract " + variant_file} ~{"--keep " + sample_file} \
+		plink2 \
+			~{prefix} ~{vcf} \
+			~{"--maf " + min_maf} \
+			~{if length(variant_files) > 0 then "--extract-intersect " else ""} ~{sep=" " variant_files} \
+			~{"--keep " + sample_file} \
 			~{"--geno " + missingness_filter} \
 			--exclude bed1 exclude.txt \
 			~{true="--snps-only 'just-acgt' --max-alleles 2" false="" snps_only} \

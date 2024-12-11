@@ -19,7 +19,7 @@ workflow LD_pruning {
         call variant_tasks.subsetVariants {
              input:
                 vcf = file,
-                variant_file = variant_file,
+                variant_files = select_all([variant_file]),
                 genome_build = genome_build,
                 min_maf = min_maf,
                 snps_only = snps_only
