@@ -29,7 +29,7 @@ workflow projected_PCA {
 		call variant_tasks.subsetVariants {
 			input:
 				vcf = file,
-				variant_file = identifyColumns.id_file,
+				variant_files = select_all([identifyColumns.id_file]),
 				sample_file = sample_file,
 				missingness_filter = missingness_filter,
 				genome_build = genome_build
@@ -69,8 +69,8 @@ workflow projected_PCA {
 	}
 
 	call pca_plots.run_pca_plots {
-		input: 
-			data_file = ProjectArray.projections, 
+		input:
+			data_file = ProjectArray.projections,
 			groups_file = groups_file
 	}
 
@@ -81,14 +81,14 @@ workflow projected_PCA {
 		File ref_pcs1 = select_first([ref_pcs, ""])
 
 		call concatenateFiles {
-			input: 
+			input:
 				ref_pcs = ref_pcs1,
 				ref_groups = ref_groups,
 				projection_file = ProjectArray.projections
 		}
 
 		call pca_plots.run_pca_plots as run_pca_plots_ref {
-			input: 
+			input:
 				data_file = concatenateFiles.merged_pcs,
 				groups_file = concatenateFiles.merged_groups,
 				colormap = concatenateFiles.colormap
