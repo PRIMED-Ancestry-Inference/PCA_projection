@@ -6,6 +6,8 @@ task identifyColumns {
 		String id_column = "ID"
 	}
 
+	Int disk_size = ceil(2*(size(ref_variants, "GB"))) + 5
+
 	command <<<
 		Rscript -e "\
 		dat <- readr::read_tsv('~{ref_variants}', comment = '##', n_max=100); \
@@ -20,6 +22,7 @@ task identifyColumns {
 
 	runtime {
 		docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.17.0"
+		disks: "local-disk " + disk_size + " SSD"
 	}
 }
 
