@@ -6,7 +6,7 @@ task identifyColumns {
 		String id_column = "ID"
 	}
 
-	Int disk_size = ceil(2*(size(ref_variants, "GB"))) + 5
+	Int disk_size = ceil(2*(size(ref_variants, "GB"))) + 10
 
 	command <<<
 		Rscript -e "\
