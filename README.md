@@ -62,6 +62,8 @@ ref_groups | Two-column tsv file of subject_id and group from reference dataset,
 groups_file | Two-column tsv file of subject_id and group from sample dataset, used to label plots (optional)
 vcf | Array of VCF files (possibly split by chromosome)
 min_overlap | minimum overlap between variants in loadings and vcf files (default 0.95). If the overlap is less than this threshold, PCA will not be run and the workflow will exit.
+sample_file | A file containing the set of sample ids to include (optional)
+variant_file | A file containing the set of variants to include in the projection. If passed, the intersection between variants in this file and in the reference panel will be used. (optional)
 
 
 Outputs:
