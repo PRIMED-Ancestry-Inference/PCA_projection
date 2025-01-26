@@ -56,7 +56,7 @@ if(is.na(ref_pcs)) {
     if(n_groups <= 7) {
       palette <- dark2[1:n_groups]
     } else if(n_groups <= 12) {
-      palette <- paired[1:ln_groups]
+      palette <- paired[1:n_groups]
     } else {
       ggplotColours <- function(n = 6, h = c(0, 360) + 15){
         if ((diff(h) %% 360) < 1) h[2] <- h[2] - 360/n
