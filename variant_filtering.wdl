@@ -35,6 +35,8 @@ task subsetVariants {
 			~{true="--snps-only 'just-acgt' --max-alleles 2" false="" snps_only} \
 			~{true="--rm-dup force-first" false="" rm_dup} \
 			~{"--alt1-allele 'force' " + alt_allele_file + " 2 1 '#'"} \
+			--allow-extra-chr \
+			--chr 1-22, X, Y, XY \
 			--output-chr chrM \
 			--set-all-var-ids @:#:\$r:\$a \
 			--double-id \
