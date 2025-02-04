@@ -33,6 +33,7 @@ task mergeFiles {
 		Array[File] bim
 		Array[File] fam
 		Boolean rm_dup = true
+		String output_chr = "chrM"
 		Int mem_gb = 16
 	}
 
@@ -47,7 +48,7 @@ task mergeFiles {
 			--merge-max-allele-ct 2 \
 			--out tmp
 		plink2 --pfile tmp \
-			--output-chr chrM \
+			--output-chr ~{output_chr} \
 			--set-all-var-ids @:#:\$r:\$a \
 			--make-bed --out merged \
 			~{true="--rm-dup exclude-all" false="" rm_dup}

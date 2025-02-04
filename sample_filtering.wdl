@@ -7,6 +7,7 @@ task removeRelateds {
 		File bim
 		File fam
 		Float max_kinship_coefficient = 0.0442
+		String output_chr = "chrM"
 		Int mem_gb = 16
 	}
 
@@ -17,7 +18,7 @@ task removeRelateds {
 		#identify individuals who are less related than kinship threshold
 		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 		--king-cutoff ~{max_kinship_coefficient} \
-		--output-chr chrM \
+		--output-chr ~{output_chr} \
 		--set-all-var-ids @:#:\$r:\$a \
 		--make-bed \
 		--out ~{basename}_unrel"
