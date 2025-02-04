@@ -11,7 +11,6 @@ task subsetVariants {
 		Int genome_build = 38
 		Boolean snps_only = true
 		Boolean rm_dup = true
-		String output_chr = "chrM"
 		Int mem_gb = 8
 	}
 
@@ -38,7 +37,7 @@ task subsetVariants {
 			~{"--alt1-allele 'force' " + alt_allele_file + " 2 1 '#'"} \
 			--allow-extra-chr \
 			--chr 1-22 \
-			--output-chr ~{output_chr} \
+			--output-chr chrM \
 			--set-all-var-ids @:#:\$r:\$a \
 			--double-id \
 			--make-bed --out ~{basename}_subset
@@ -70,6 +69,7 @@ task pruneVars {
 		Int window_size = 10000
 		Int shift_size = 1000
 		Float r2_threshold = 0.1
+		String output_chr = "chrM"
 		Int mem_gb = 8
 	}
 
@@ -81,7 +81,7 @@ task pruneVars {
 
 		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 			--rm-dup force-first \
-			--output-chr chrM \
+			--output-chr ~{output_chr} \
 			--set-all-var-ids @:#:\$r:\$a \
 			--indep-pairwise ~{window_size} ~{shift_size} ~{r2_threshold} \
 			--out ~{basename}_indep"
@@ -91,7 +91,7 @@ task pruneVars {
 		# extract pruned variants
 		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
 			--extract ~{basename}_indep.prune.in \
-			--output-chr chrM \
+			--output-chr ~{output_chr} \
 			--set-all-var-ids @:#:\$r:\$a \
 			--make-bed \
 			--out ~{basename}_pruned"
