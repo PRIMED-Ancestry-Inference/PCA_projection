@@ -11,6 +11,7 @@ task subsetVariants {
 		Int genome_build = 38
 		Boolean snps_only = true
 		Boolean rm_dup = true
+		String output_chr = "chrM"
 		Int mem_gb = 8
 	}
 
@@ -37,7 +38,7 @@ task subsetVariants {
 			~{"--alt1-allele 'force' " + alt_allele_file + " 2 1 '#'"} \
 			--allow-extra-chr \
 			--chr 1-22 \
-			--output-chr chrM \
+			--output-chr ~{output_chr} \
 			--set-all-var-ids @:#:\$r:\$a \
 			--double-id \
 			--make-bed --out ~{basename}_subset
