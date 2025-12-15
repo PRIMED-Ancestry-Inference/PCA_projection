@@ -23,6 +23,7 @@ workflow create_pca_projection {
 		Float? r2_threshold
 		File? groups_file
 		String relatedness_estimator = "robust"
+		File? kinship_matrix
 	}
 
 	# Input validation for relatedness_estimator
@@ -81,30 +82,31 @@ workflow create_pca_projection {
 	File merged_fam = select_first([mergeFiles.out_fam, pruneVars.out_fam[0], subsetVariants.subset_fam[0]])
 
   	if (remove_relateds) {
-
-		if (relatedness_estimator == "robust") {
-			call sample_tasks.king_robust {
+		if(!defined(kinship_matrix)) {
+			if (relatedness_estimator == "robust") {
+				call sample_tasks.king_robust {
 					input:
-						bed = merged_bed,
-						bim = merged_bim,
-						fam = merged_fam,
+						bed = merged_bed, 
+						bim = merged_bim, 
+						fam = merged_fam, 
 						degree = kinship_degree_filter
 				}
-		}
+			}
 
-		if (relatedness_estimator == "ibdseg") {
-			call sample_tasks.king_ibdseg {
-					input:
-						bed = merged_bed,
-						bim = merged_bim,
-						fam = merged_fam,
-						degree = kinship_degree_filter
-				}
+			if (relatedness_estimator == "ibdseg") {
+				call sample_tasks.king_ibdseg {
+						input:
+							bed = merged_bed,
+							bim = merged_bim,
+							fam = merged_fam,
+							degree = kinship_degree_filter
+					}
+			}
 		}
 
 		call sample_tasks.findRelated {
 			input:
-				king_file = select_first([king_robust.kin0, king_ibdseg.kin0]),
+				king_file = select_first([kinship_matrix, king_robust.kin0, king_ibdseg.kin0]),
 				estimator = estimator,
 				degree = kinship_degree_filter
 		}
@@ -151,6 +153,10 @@ workflow create_pca_projection {
 		Array[File]? pca_plots_pairs = run_pca_plots.pca_plots_pairs
 		File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
 		File? pca_plots = run_pca_plots.pca_plots
+		File? related_samples = findRelated.related_samples
+		File? unrelated_samples = findRelated.unrelated_samples
+		Array[File?] pruned_out_variants = pruneVars.pruned_out_variants
+		Array[File?] pruned_in_variants = pruneVars.pruned_in_variants
 	}
 
 	meta {

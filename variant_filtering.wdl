@@ -101,7 +101,8 @@ task pruneVars {
 	>>>
 
 	output {
-		#File subset_keep_vars="~{basename}_indep.prune.in"
+		File pruned_in_variants="~{basename}_indep.prune.in"
+		File pruned_out_variants="~{basename}_indep.prune.out"
 		File out_bed="~{basename}_pruned.bed"
 		File out_bim="~{basename}_pruned.bim"
 		File out_fam="~{basename}_pruned.fam"
