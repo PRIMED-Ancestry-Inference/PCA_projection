@@ -138,32 +138,40 @@ task findRelated {
     }
 
     command <<<
-        Rscript -e "\
-        library(GENESIS); \
-        chk <- readr::read_tsv('~{king_file}', n_max=10); \
-        if (nrow(chk) > 0) { \
-            exponent <- c(5,7,9,11,13)[~{degree}]; \
-            thresh <- 2^(-exponent/2); \
-            kinobj <- kingToMatrix('~{king_file}', estimator='~{estimator}', thresh=thresh); \
-            if (all(kinobj[upper.tri(kinobj)] > thresh)) { \
-                rels <- rownames(kinobj)[2:nrow(kinobj)]; \
-                unrels <- rownames(kinobj)[1]; \
-            } else { \
-                part <- pcairPartition(kinobj, kin.thresh=thresh); \
-                rels <- part[['rels']]; \
-                unrels <- part[['unrels']]; \
-            }; \
-            if(length(rels == 0)) {writeLines(' ', 'related_samples.txt') ;\ writeLines('false', 'has_relatives.txt')}; \
-            else {readr::write_tsv(tibble::tibble(FID=rels, IID=rels), 'related_samples.txt', col_names=FALSE); \ writeLines('true', 'has_relatives.txt')}; \
-            if(length(unrels == 0)) {writeLines(' ', 'unrelated_samples.txt')}; \
-            else {readr::write_tsv(tibble::tibble(FID=unrels, IID=unrels), 'unrelated_samples.txt', col_names=FALSE)}; \
-        } else { \
-            message('No related samples found'); \
-            writeLines(' ', 'related_samples.txt'); \
-            writeLines(' ', 'unrelated_samples.txt'); \
-            writeLines('false', 'has_relatives.txt'); \
-        }; \
-        "
+        R << RSCRIPT
+        library(GENESIS)
+        chk <- readr::read_tsv('~{king_file}', n_max=10)
+        if (nrow(chk) > 0) {
+            exponent <- c(5,7,9,11,13)[~{degree}]
+            thresh <- 2^(-exponent/2)
+            kinobj <- kingToMatrix('~{king_file}', estimator='~{estimator}', thresh=thresh)
+            if (all(kinobj[upper.tri(kinobj)] > thresh)) {
+                rels <- rownames(kinobj)[2:nrow(kinobj)]
+                unrels <- rownames(kinobj)[1]
+            } else { 
+                part <- pcairPartition(kinobj, kin.thresh=thresh)
+                rels <- part[['rels']]
+                unrels <- part[['unrels']]
+            }
+            if(length(rels) == 0) {
+                writeLines(' ', 'related_samples.txt') 
+                writeLines('false', 'has_relatives.txt')
+            } else {
+                readr::write_tsv(tibble::tibble(FID=rels, IID=rels), 'related_samples.txt', col_names=FALSE)
+                writeLines('true', 'has_relatives.txt')
+            }
+            if(length(unrels) == 0) {
+                writeLines(' ', 'unrelated_samples.txt')
+            } else {
+                readr::write_tsv(tibble::tibble(FID=unrels, IID=unrels), 'unrelated_samples.txt', col_names=FALSE)
+            }
+        } else {
+            message('No related samples found')
+            writeLines(' ', 'related_samples.txt')
+            writeLines(' ', 'unrelated_samples.txt')
+            writeLines('false', 'has_relatives.txt')
+        }
+        RSCRIPT
     >>>
 
     output {
