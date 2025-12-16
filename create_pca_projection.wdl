@@ -26,13 +26,6 @@ workflow create_pca_projection {
 		File? kinship_matrix
 	}
 
-	# Input validation for relatedness_estimator
-  	if (remove_relateds) {
-		# Map king relatedness estimator to the appropriate value for the GENESIS task.
-		Map[String, String] relatedness_estimator_map = {"robust": "Kinship", "ibdseg": "PropIBD"}
-		String estimator = relatedness_estimator_map[relatedness_estimator]
-	}
-
 	if (defined(ref_variants)) {
 		call file_tasks.identifyColumns {
 			input:
@@ -82,6 +75,10 @@ workflow create_pca_projection {
 	File merged_fam = select_first([mergeFiles.out_fam, pruneVars.out_fam[0], subsetVariants.subset_fam[0]])
 
 	if(remove_relateds) {
+		# Map king relatedness estimator to the appropriate value for the GENESIS task.
+		Map[String, String] relatedness_estimator_map = {"robust": "Kinship", "ibdseg": "PropIBD"}
+		String estimator = relatedness_estimator_map[relatedness_estimator]
+
 		if(!defined(kinship_matrix)&& relatedness_estimator == "robust") {
 			call sample_tasks.king_robust {
 				input: 
@@ -102,7 +99,7 @@ workflow create_pca_projection {
 			}
 		}
 
-		File king_file_input = select_first([king_robust.kin0, king_ibdseg.kin0, kinship_matrix])
+		File king_file_input = select_first([kinship_matrix, king_robust.kin0, king_ibdseg.kin0])
 
 		call sample_tasks.findRelated {
 				input:
@@ -111,7 +108,7 @@ workflow create_pca_projection {
 					degree = kinship_degree_filter
 			}
 
-		if (findRelated.has_relatives) {
+		if(findRelated.has_relatives) {
 			call sample_tasks.removeSamples {
 				input:
 					bed = merged_bed,
@@ -154,7 +151,6 @@ workflow create_pca_projection {
 		File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
 		File? pca_plots = run_pca_plots.pca_plots
 		File? related_samples = findRelated.related_samples
-		File? unrelated_samples = findRelated.unrelated_samples
 		Array[File?] pruned_out_variants = pruneVars.pruned_out_variants
 		Array[File?] pruned_in_variants = pruneVars.pruned_in_variants
 	}
