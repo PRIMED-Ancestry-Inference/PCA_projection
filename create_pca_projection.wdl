@@ -81,35 +81,35 @@ workflow create_pca_projection {
 	File merged_bim = select_first([mergeFiles.out_bim, pruneVars.out_bim[0], subsetVariants.subset_bim[0]])
 	File merged_fam = select_first([mergeFiles.out_fam, pruneVars.out_fam[0], subsetVariants.subset_fam[0]])
 
-  	if (remove_relateds) {
-		if(!defined(kinship_matrix)) {
-			if (relatedness_estimator == "robust") {
-				call sample_tasks.king_robust {
-					input:
-						bed = merged_bed, 
-						bim = merged_bim, 
-						fam = merged_fam, 
-						degree = kinship_degree_filter
-				}
-			}
-
-			if (relatedness_estimator == "ibdseg") {
-				call sample_tasks.king_ibdseg {
-						input:
-							bed = merged_bed,
-							bim = merged_bim,
-							fam = merged_fam,
-							degree = kinship_degree_filter
-					}
+	if(remove_relateds) {
+		if(!defined(kinship_matrix)&& relatedness_estimator == "robust") {
+			call sample_tasks.king_robust {
+				input: 
+					bed = merged_bed, 
+					bim = merged_bim, 
+					fam = merged_fam, 
+					degree = kinship_degree_filter
 			}
 		}
+
+		if(!defined(kinship_matrix)&& relatedness_estimator == "ibdseg") {
+			call sample_tasks.king_ibdseg {
+				input: 
+					bed = merged_bed, 
+					bim = merged_bim, 
+					fam = merged_fam, 
+					degree = kinship_degree_filter
+			}
+		}
+
+		File king_file_input = select_first([king_robust.kin0, king_ibdseg.kin0, kinship_matrix])
 
 		call sample_tasks.findRelated {
-			input:
-				king_file = select_first([kinship_matrix, king_robust.kin0, king_ibdseg.kin0]),
-				estimator = estimator,
-				degree = kinship_degree_filter
-		}
+				input:
+					king_file = king_file_input,
+					estimator = estimator,
+					degree = kinship_degree_filter
+			}
 
 		if (findRelated.has_relatives) {
 			call sample_tasks.removeSamples {
