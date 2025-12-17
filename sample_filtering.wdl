@@ -224,8 +224,9 @@ task subsetKingMatrix {
 
     command <<<
         Rscript -e "\
+        library(tidyverse); \
         kin <- readr::read_tsv('~{king_file}'); \
-        fam <- read_tsv('~{fam}', col_names = FALSE); \
+        fam <- readr::read_tsv('~{fam}', col_names = FALSE); \
         fam_ids <- fam[[1]]; \
         kin_subset <- kin %>% filter(kin[[1]] %in% fam_ids); \
         write_tsv(kin_subset, '~{basename}.kin0'); \
@@ -237,6 +238,6 @@ task subsetKingMatrix {
     }
 
     runtime {
-        docker: "uwgac/topmed-master:2.12.1"
+        docker: "rocker/tidyverse:4.3.1"  # R + tidyverse
     }
 }
