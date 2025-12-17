@@ -213,3 +213,30 @@ task removeSamples {
         memory: mem_gb + " GB"
     }
 }
+
+task subsetKingMatrix {
+    input {
+        File king_file 
+        File fam
+    }
+
+    String basename = basename(fam, ".fam")
+
+    command <<<
+        Rscript -e "\
+        kin <- readr::read_tsv('~{king_file}'); \
+        fam <- read_tsv('~{fam}', col_names = FALSE); \
+        fam_ids <- fam[[1]]; \
+        kin_subset <- kin %>% filter(kin[[1]] %in% fam_ids); \
+        write_tsv(kin_subset, '~{basename}.kin0'); \
+        "
+    >>>
+	
+    output {
+        File kin0 = "~{basename}.kin0"
+    }
+
+    runtime {
+        docker: "uwgac/topmed-master:2.12.1"
+    }
+}

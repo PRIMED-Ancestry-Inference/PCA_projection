@@ -99,7 +99,16 @@ workflow create_pca_projection {
 			}
 		}
 
-		File king_file_input = select_first([kinship_matrix, king_robust.kin0, king_ibdseg.kin0])
+		if(defined(kinship_matrix)) {
+			File king_file = select_first([kinship_matrix, ""])
+			call sample_tasks.subsetKingMatrix {
+				input: 
+					king_file = king_file, 
+					fam = merged_fam
+			}
+		}
+
+		File king_file_input = select_first([subsetKingMatrix.kin0, king_robust.kin0, king_ibdseg.kin0])
 
 		call sample_tasks.findRelated {
 				input:
@@ -151,6 +160,7 @@ workflow create_pca_projection {
 		File? pca_plots_parcoord = run_pca_plots.pca_plots_parcoord
 		File? pca_plots = run_pca_plots.pca_plots
 		File? related_samples = findRelated.related_samples
+		File? unrelated_samples = findRelated.unrelated_samples
 		Array[File?] pruned_out_variants = pruneVars.pruned_out_variants
 		Array[File?] pruned_in_variants = pruneVars.pruned_in_variants
 	}
