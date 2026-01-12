@@ -24,6 +24,7 @@ workflow create_pca_projection {
 		File? groups_file
 		String relatedness_estimator = "robust"
 		File? kinship_matrix
+		Int? mem_gb
 	}
 
 	if (defined(ref_variants)) {
@@ -104,7 +105,8 @@ workflow create_pca_projection {
 			call sample_tasks.subsetKingMatrix {
 				input: 
 					king_file = king_file, 
-					fam = merged_fam
+					fam = merged_fam, 
+					mem_gb = mem_gb
 			}
 		}
 

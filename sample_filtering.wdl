@@ -218,6 +218,7 @@ task subsetKingMatrix {
     input {
         File king_file 
         File fam
+        Int mem_gb = 8
     }
 
     String basename = basename(fam, ".fam")
@@ -239,5 +240,6 @@ task subsetKingMatrix {
 
     runtime {
         docker: "rocker/tidyverse:4.3.1"  # R + tidyverse
+        memory: mem_gb + " GB"
     }
 }
