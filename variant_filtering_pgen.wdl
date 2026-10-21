@@ -1,7 +1,8 @@
 version 1.0
 
 # PLINK2 pgen/pvar/psam version of variant_filtering.wdl.
-# subsetVariants takes a PLINK2 fileset instead of a VCF/BCF; pruneVars is unchanged.
+# subsetVariants takes a PLINK2 fileset instead of a VCF/BCF.
+# pruneVars takes the bed/bim/fam from subsetVariants and writes pgen/pvar/psam.
 
 task subsetVariants {
 	input {
@@ -103,7 +104,7 @@ task pruneVars {
 			--extract ~{basename}_indep.prune.in \
 			--output-chr ~{output_chr} \
 			--set-all-var-ids @:#:\$r:\$a \
-			--make-bed \
+			--make-pgen \
 			--out ~{basename}_pruned"
 		printf "${command}\n"
 		${command}
@@ -111,9 +112,9 @@ task pruneVars {
 
 	output {
 		#File subset_keep_vars="~{basename}_indep.prune.in"
-		File out_bed="~{basename}_pruned.bed"
-		File out_bim="~{basename}_pruned.bim"
-		File out_fam="~{basename}_pruned.fam"
+		File out_pgen="~{basename}_pruned.pgen"
+		File out_pvar="~{basename}_pruned.pvar"
+		File out_psam="~{basename}_pruned.psam"
 	}
 
 	runtime {
