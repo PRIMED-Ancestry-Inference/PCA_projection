@@ -29,4 +29,6 @@ workflows:
     primaryDescriptorPath: /pca_plots.wdl
     testParameterFiles:
        - /pca_plots.json
-       
+  - name: LD_pruning_pgen
+    subclass: WDL
+    primaryDescriptorPath: /ld_pruning_pgen.wdl
