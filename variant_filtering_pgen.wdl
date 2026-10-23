@@ -19,9 +19,12 @@ task subsetVariants {
 		Boolean rm_dup = true
 		String output_chr = "chrM"
 		Int mem_gb = 8
+		Int? disk_gb
 	}
 
-	Int disk_size = ceil(2.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB") + size(variant_files, "GB"))) + 5
+	# pgen is compressed but the .bed output is not, so the default can be too small
+	# for imputed data without a MAF or variant filter; set disk_gb to override
+	Int disk_size = select_first([disk_gb, ceil(2.5*(size(pgen, "GB") + size(pvar, "GB") + size(psam, "GB") + size(variant_files, "GB"))) + 5])
 	String basename = basename(pgen, ".pgen")
 
 	command <<<
@@ -80,9 +83,10 @@ task pruneVars {
 		Float r2_threshold = 0.1
 		String output_chr = "chrM"
 		Int mem_gb = 8
+		Int? disk_gb
 	}
 
-	Int disk_size = ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB")))
+	Int disk_size = select_first([disk_gb, ceil(1.5*(size(bed, "GB") + size(bim, "GB") + size(fam, "GB"))) + 5])
 	String basename = basename(bed, ".bed")
 
 	command <<<
