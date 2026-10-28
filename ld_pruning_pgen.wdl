@@ -15,6 +15,7 @@ workflow LD_pruning_pgen {
         Int? window_size
         Int? shift_size
         Float? r2_threshold
+        Boolean? write_pgen
     }
 
     scatter (files in zip(zip(pgen, pvar), psam)) {
@@ -36,18 +37,20 @@ workflow LD_pruning_pgen {
                 fam = subsetVariants.subset_fam,
                 window_size = window_size,
                 shift_size = shift_size,
-                r2_threshold = r2_threshold
+                r2_threshold = r2_threshold,
+                write_pgen = write_pgen
         }
     }
 
     output {
+        Array[File] pruned_variants = pruneVars.pruned_variants
         Array[File] pruned_pgen = pruneVars.out_pgen
         Array[File] pruned_pvar = pruneVars.out_pvar
         Array[File] pruned_psam = pruneVars.out_psam
     }
 
     meta {
-        author: "Stephanie Gogarten"
+        author: "Stephanie Gogarten and Seth Peacock"
         email: "sdmorris@uw.edu"
     }
 }

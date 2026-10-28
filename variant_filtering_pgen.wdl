@@ -2,7 +2,8 @@ version 1.0
 
 # PLINK2 pgen/pvar/psam version of variant_filtering.wdl.
 # subsetVariants takes a PLINK2 fileset instead of a VCF/BCF.
-# pruneVars takes the bed/bim/fam from subsetVariants and writes pgen/pvar/psam.
+# pruneVars takes the bed/bim/fam from subsetVariants and writes the pruned variant IDs,
+# plus pgen/pvar/psam when write_pgen = true (empty placeholder files otherwise).
 
 task subsetVariants {
 	input {
@@ -81,6 +82,7 @@ task pruneVars {
 		Int window_size = 10000
 		Int shift_size = 1000
 		Float r2_threshold = 0.1
+		Boolean write_pgen = true
 		String output_chr = "chrM"
 		Int mem_gb = 8
 		Int? disk_gb
@@ -102,20 +104,28 @@ task pruneVars {
 		printf "${command}\n"
 		${command}
 
-		# extract pruned variants
-		command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
-			--memory ~{mem_gb *  512} \
-			--extract ~{basename}_indep.prune.in \
-			--output-chr ~{output_chr} \
-			--set-all-var-ids @:#:\$r:\$a \
-			--make-pgen \
-			--out ~{basename}_pruned"
-		printf "${command}\n"
-		${command}
+		# list of variant IDs kept after pruning
+		cp ~{basename}_indep.prune.in ~{basename}_pruned_variants.txt
+
+		if [ "~{write_pgen}" = "true" ]; then
+			# extract pruned variants
+			command="plink2 --bed ~{bed} --bim ~{bim} --fam ~{fam} \
+				--memory ~{mem_gb *  512} \
+				--extract ~{basename}_indep.prune.in \
+				--output-chr ~{output_chr} \
+				--set-all-var-ids @:#:\$r:\$a \
+				--make-pgen \
+				--out ~{basename}_pruned"
+			printf "${command}\n"
+			${command}
+		else
+			# placeholders so the outputs always exist
+			touch ~{basename}_pruned.pgen ~{basename}_pruned.pvar ~{basename}_pruned.psam
+		fi
 	>>>
 
 	output {
-		#File subset_keep_vars="~{basename}_indep.prune.in"
+		File pruned_variants="~{basename}_pruned_variants.txt"
 		File out_pgen="~{basename}_pruned.pgen"
 		File out_pvar="~{basename}_pruned.pvar"
 		File out_psam="~{basename}_pruned.psam"
