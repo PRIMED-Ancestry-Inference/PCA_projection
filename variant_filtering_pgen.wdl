@@ -4,6 +4,7 @@ version 1.0
 # subsetVariants takes a PLINK2 fileset instead of a VCF/BCF.
 # pruneVars takes the bed/bim/fam from subsetVariants and writes the pruned variant IDs,
 # plus pgen/pvar/psam when write_pgen = true (empty placeholder files otherwise).
+# combineVariants concatenates the per-chromosome variant lists into one file.
 
 task subsetVariants {
 	input {
@@ -129,6 +130,39 @@ task pruneVars {
 		File out_pgen="~{basename}_pruned.pgen"
 		File out_pvar="~{basename}_pruned.pvar"
 		File out_psam="~{basename}_pruned.psam"
+	}
+
+	runtime {
+		docker: "quay.io/biocontainers/plink2:2.00a5.12--h4ac6f70_0"
+		disks: "local-disk " + disk_size + " SSD"
+		memory: mem_gb + " GB"
+	}
+}
+
+# concatenate per-chromosome variant lists into one genome-wide list
+task combineVariants {
+	input {
+		Array[File] variant_files
+		String out_file = "pruned_variants.txt"
+		Int mem_gb = 2
+	}
+
+	Int disk_size = ceil(2*size(variant_files, "GB")) + 5
+
+	command <<<
+		set -e -o pipefail
+
+		# files are concatenated in array order (chromosome order of the inputs)
+		while read -r f; do
+			cat "$f"
+		done < ~{write_lines(variant_files)} > ~{out_file}
+
+		wc -l < ~{out_file} | tr -d ' ' > n_variants.txt
+	>>>
+
+	output {
+		File combined = out_file
+		Int n_variants = read_int("n_variants.txt")
 	}
 
 	runtime {

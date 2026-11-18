@@ -42,7 +42,14 @@ workflow LD_pruning_pgen {
         }
     }
 
+    call variant_tasks.combineVariants {
+        input:
+            variant_files = pruneVars.pruned_variants
+    }
+
     output {
+        File all_pruned_variants = combineVariants.combined
+        Int n_pruned_variants = combineVariants.n_variants
         Array[File] pruned_variants = pruneVars.pruned_variants
         Array[File] pruned_pgen = pruneVars.out_pgen
         Array[File] pruned_pvar = pruneVars.out_pvar
